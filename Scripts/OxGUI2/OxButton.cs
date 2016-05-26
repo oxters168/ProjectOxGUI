@@ -2,7 +2,7 @@
 
 namespace OxGUI2
 {
-    public class OxButton : OxBase, OxMovable, OxResizable, OxPressable, OxSelectable, OxTexturable
+    public class OxButton : OxBase, OxPressable, OxSelectable, OxTexturable
     {
         private Texture2D[,] appearances = new Texture2D[3, 9];
         private Vector2 centerPercentSize = new Vector2(0.5f, 0.5f);
@@ -53,8 +53,6 @@ namespace OxGUI2
         public event OxGUIHelpers.MouseLeaveHandler mouseLeave;
         public event OxGUIHelpers.MouseDownHandler mouseDown;
         public event OxGUIHelpers.MouseUpHandler mouseUp;
-        public event OxGUIHelpers.MovedHandler moved;
-        public event OxGUIHelpers.ResizedHandler resized;
 
         public void Highlight(bool onOff)
         {
@@ -95,22 +93,11 @@ namespace OxGUI2
             if (mouseUp != null) mouseUp(this, OxGUIHelpers.MouseButton.leftButton);
         }
 
-        public void Reposition(int newX, int newY)
-        {
-            Reposition(new Vector2(newX, newY));
-        }
-        public void Reposition(Vector2 newPosition)
-        {
-            Vector2 delta = newPosition - position;
-            x = Mathf.RoundToInt(newPosition.x);
-            y = Mathf.RoundToInt(newPosition.y);
-            if (moved != null) moved(this, delta);
-        }
-        public void Resize(int w, int h)
+        public override void Resize(int w, int h)
         {
             Resize(new Vector2(w, h));
         }
-        public void Resize(Vector2 newSize)
+        public override void Resize(Vector2 newSize)
         {
             Vector2 delta = newSize - size;
             if (delta != Vector2.zero)
@@ -120,7 +107,7 @@ namespace OxGUI2
 
                 centerPercentWidth = (width - originalSideWidth) / width;
                 centerPercentHeight = (height - originalSideHeight) / height;
-                if (resized != null) resized(this, delta);
+                FireResizedEvent(delta);
             }
         }
 
