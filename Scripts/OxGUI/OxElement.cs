@@ -1,6 +1,6 @@
-﻿using UnityEngine;
-using System.Collections;
-
-public abstract class OxElement
+﻿namespace OxGUI
 {
+    public abstract class OxElement
+    {
+    }
 }

@@ -1,30 +1,33 @@
 ﻿using UnityEngine;
-using System.Collections;
 
-public class OxImage : OxGUI {
-
-    public Texture2D image;
-    public ScaleMode imageScale = ScaleMode.ScaleToFit;
-
-    public OxImage(Texture2D i) : base(new Vector2(0, 0), new Vector2(0, 0))
+namespace OxGUI
+{
+    public class OxImage : OxGUI
     {
-        selectable = false;
-        image = i;
-    }
-    public OxImage() : this(null) { }
 
-    public override void Draw()
-    {
-        base.Draw();
+        public Texture2D image;
+        public ScaleMode imageScale = ScaleMode.ScaleToFit;
 
-        if (visible && image != null)
+        public OxImage(Texture2D i) : base(new Vector2(0, 0), new Vector2(0, 0))
         {
-            GUI.DrawTexture(new Rect(position.x, position.y, size.x, size.y), image, imageScale);
-            //GUIStyle imageStyle = new GUIStyle();
-            //imageStyle.normal.background = image;
-            //GUI.Label(new Rect(position.x, position.y, size.x, size.y), "", imageStyle);
-            //return true;
+            selectable = false;
+            image = i;
         }
-        //return false;
+        public OxImage() : this(null) { }
+
+        public override void Draw()
+        {
+            base.Draw();
+
+            if (visible && image != null)
+            {
+                GUI.DrawTexture(new Rect(position.x, position.y, size.x, size.y), image, imageScale);
+                //GUIStyle imageStyle = new GUIStyle();
+                //imageStyle.normal.background = image;
+                //GUI.Label(new Rect(position.x, position.y, size.x, size.y), "", imageStyle);
+                //return true;
+            }
+            //return false;
+        }
     }
 }

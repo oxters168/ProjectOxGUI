@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
-using System.Collections;
 
-public abstract class OxLayout : OxGUI
+namespace OxGUI
 {
-    public OxLayout() : base(new Vector2(0, 0), new Vector2(0, 0))
+    public abstract class OxLayout : OxGUI
     {
-        selectable = false;
+        public OxLayout() : base(new Vector2(0, 0), new Vector2(0, 0))
+        {
+            selectable = false;
+        }
     }
 }
