@@ -9,44 +9,7 @@ public class ExampleOxGUI2 : MonoBehaviour {
 
     void Start()
     {
-        /*Texture2D topLeft = new Texture2D(4, 4);
-        topLeft.SetPixels(new Color[] { Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red });
-        topLeft.Apply();
-        Texture2D top = new Texture2D(4, 4);
-        top.SetPixels(new Color[] { Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green });
-        top.Apply();
-        Texture2D topRight = new Texture2D(4, 4);
-        topRight.SetPixels(new Color[] { Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue });
-        topRight.Apply();
-        Texture2D left = new Texture2D(4, 4);
-        left.SetPixels(new Color[] { Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue });
-        left.Apply();
-        Texture2D center = new Texture2D(4, 4);
-        center.SetPixels(new Color[] { Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red });
-        center.Apply();
-        Texture2D right = new Texture2D(4, 4);
-        right.SetPixels(new Color[] { Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green });
-        right.Apply();
-        Texture2D bottomLeft = new Texture2D(4, 4);
-        bottomLeft.SetPixels(new Color[] { Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green, Color.green });
-        bottomLeft.Apply();
-        Texture2D bottom = new Texture2D(4, 4);
-        bottom.SetPixels(new Color[] { Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue, Color.blue });
-        bottom.Apply();
-        Texture2D bottomRight = new Texture2D(4, 4);
-        bottomRight.SetPixels(new Color[] { Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red, Color.red });
-        bottomRight.Apply();*/
-        button.AddAppearance(OxGUIHelpers.ElementState.normal, new Texture2D[] {
-            Resources.Load<Texture2D>("Textures/BlueButton/BlueTopLeft"),
-            Resources.Load<Texture2D>("Textures/BlueButton/BlueTop"),
-            Resources.Load<Texture2D>("Textures/BlueButton/BlueTopRight"),
-            Resources.Load<Texture2D>("Textures/BlueButton/BlueLeft"),
-            Resources.Load<Texture2D>("Textures/BlueButton/BlueCenter"),
-            Resources.Load<Texture2D>("Textures/BlueButton/BlueRight"),
-            Resources.Load<Texture2D>("Textures/BlueButton/BlueBottomLeft"),
-            Resources.Load<Texture2D>("Textures/BlueButton/BlueBottom"),
-            Resources.Load<Texture2D>("Textures/BlueButton/BlueBottomRight")
-        });
+        AddTexturesToButton();
 
         button.resized += Button_resized;
 
@@ -67,5 +30,44 @@ public class ExampleOxGUI2 : MonoBehaviour {
         button.centerPercentWidth = centerWidth;
         button.centerPercentHeight = centerHeight;
         button.Draw();
+    }
+
+    private void AddTexturesToButton()
+    {
+        button.AddAppearance(OxGUIHelpers.ElementState.normal, new Texture2D[] {
+            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueTopLeft"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueTop"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueTopRight"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueLeft"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueCenter"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueRight"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueBottomLeft"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueBottom"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueBottomRight")
+        });
+
+        button.AddAppearance(OxGUIHelpers.ElementState.highlighted, new Texture2D[] {
+            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueTopLeft"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueTop"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueTopRight"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueLeft"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueCenter"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueRight"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueBottomLeft"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueBottom"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueBottomRight")
+        });
+
+        button.AddAppearance(OxGUIHelpers.ElementState.down, new Texture2D[] {
+            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueTopLeft"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueTop"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueTopRight"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueLeft"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueCenter"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueRight"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueBottomLeft"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueBottom"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueBottomRight")
+        });
     }
 }

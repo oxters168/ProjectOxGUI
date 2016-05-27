@@ -9,7 +9,7 @@ namespace OxGUI2
         public OxGUIHelpers.ElementState currentState { get; private set; }
         public float centerPercentWidth { get { return centerPercentSize.x; } set { if (value >= 0 && value <= 1) centerPercentSize = new Vector2(value, centerPercentSize.y); else throw new System.Exception("Value must be between 0 and 1 inclusive"); } }
         public float centerPercentHeight { get { return centerPercentSize.y; } set { if (value >= 0 && value <= 1) centerPercentSize = new Vector2(centerPercentSize.x, value); else throw new System.Exception("Value must be between 0 and 1 inclusive"); } }
-        private float originalSideWidth, originalSideHeight;
+        private float originalWidth, originalHeight, originalSideWidth, originalSideHeight;
         //public bool down { get; private set; }
         //public bool highlighted { get; private set; }
 
@@ -17,6 +17,32 @@ namespace OxGUI2
         public OxButton(Vector2 position, Vector2 size) : base(position, size) { }
 
         public override void Draw()
+        {
+            ListenToMouse();
+            PaintTextures();
+        }
+
+        private void ListenToMouse()
+        {
+            Vector2 mousePosition = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
+            if (mousePosition.x > (x - (width / 2f)) && mousePosition.x < (x + (width / 2f)) && mousePosition.y > (y - (height / 2f)) && mousePosition.y < (y + (height / 2f)))
+            {
+                if(currentState == OxGUIHelpers.ElementState.normal) Highlight(true);
+                if(Input.GetMouseButton(0))
+                {
+                    if(currentState != OxGUIHelpers.ElementState.down) MouseDown();
+                }
+                else
+                {
+                    if(currentState == OxGUIHelpers.ElementState.down) MouseUp();
+                }
+            }
+            else
+            {
+                if(currentState != OxGUIHelpers.ElementState.normal) Highlight(false);
+            }
+        }
+        private void PaintTextures()
         {
             if (visible)
             {
@@ -105,10 +131,28 @@ namespace OxGUI2
                 width = Mathf.RoundToInt(newSize.x);
                 height = Mathf.RoundToInt(newSize.y);
 
-                centerPercentWidth = (width - originalSideWidth) / width;
-                centerPercentHeight = (height - originalSideHeight) / height;
+                UpdateNonPixeliness();
                 FireResizedEvent(delta);
             }
+        }
+        private void UpdateNonPixeliness()
+        {
+            float calculatedSideWidth = originalSideWidth, calculatedSideHeight = originalSideHeight;
+            float horizontalPercentDifference = width / originalWidth, verticalPercentDifference = height / originalHeight;
+
+            if (width < originalWidth && horizontalPercentDifference < verticalPercentDifference)
+            {
+                calculatedSideWidth *= horizontalPercentDifference;
+                calculatedSideHeight *= horizontalPercentDifference;
+            }
+            else if(height < originalHeight)
+            {
+                calculatedSideWidth *= verticalPercentDifference;
+                calculatedSideHeight *= verticalPercentDifference;
+            }
+
+            centerPercentWidth = (width - calculatedSideWidth) / width;
+            centerPercentHeight = (height - calculatedSideHeight) / height;
         }
 
         public void AddAppearance(OxGUIHelpers.ElementState type, Texture2D[] appearance)
@@ -128,8 +172,12 @@ namespace OxGUI2
                 float centerHeight = appearance[(int)OxGUIHelpers.TexturePositioning.center].height, topHeight = appearance[(int)OxGUIHelpers.TexturePositioning.top].height, bottomHeight = appearance[(int)OxGUIHelpers.TexturePositioning.bottom].height;
                 float percentWidth = centerWidth / (centerWidth + rightWidth + leftWidth);
                 float percentHeight = centerHeight / (centerHeight + topHeight + bottomHeight);
+
                 centerPercentWidth = percentWidth;
                 centerPercentHeight = percentHeight;
+
+                originalWidth = leftWidth + centerWidth + rightWidth;
+                originalHeight = topHeight + centerHeight + bottomHeight;
                 originalSideWidth = leftWidth + rightWidth;
                 originalSideHeight = topHeight + bottomHeight;
                 //centerPercentSize = new Vector2(percentWidth, percentHeight);
