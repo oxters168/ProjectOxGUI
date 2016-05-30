@@ -1,12 +1,15 @@
 ﻿using UnityEngine;
+using System;
 
-namespace OxGUI2
+namespace OxGUI
 {
     public class OxGUIHelpers
     {
-        public enum MouseButton { leftButton, rightButton, middleMouseButton, backButton, forwardButton, }
-        public enum ElementState { normal, highlighted, down, }
-        public enum TexturePositioning { topLeft, top, topRight, left, center, right, bottomLeft, bottom, bottomRight }
+        public enum MouseButton { Left_Button, Right_Button, Middle_Mouse_Button, Back_Button, Forward_Button, }
+        public enum ElementState { Normal, Highlighted, Down, }
+        public enum TexturePositioning { Top_Left, Top, Top_Right, Left, Center, Right, Bottom_Left, Bottom, Bottom_Right }
+        [Flags]
+        public enum Anchor { Bottom, Left, None, Right, Top, }
 
         public delegate void MovedHandler(object obj, Vector2 delta);
         public delegate void ResizedHandler(object obj, Vector2 delta);

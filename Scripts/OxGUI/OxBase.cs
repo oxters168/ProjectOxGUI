@@ -1,19 +1,42 @@
 ﻿using UnityEngine;
 
-namespace OxGUI2
+namespace OxGUI
 {
     public abstract class OxBase
     {
         public bool visible = true;
         public bool enabled = true;
 
-        public int x { get; protected set; }
-        public int y { get; protected set; }
-        public int width { get; protected set; }
-        public int height { get; protected set; }
+        /// <summary>
+        /// Can only be set within the same namespace, but only set if you don't
+        /// want to fire the repositioned event.
+        /// </summary>
+        public int x { get; internal set; }
+        /// <summary>
+        /// Can only be set within the same namespace, but only set if you don't
+        /// want to fire the repositioned event.
+        /// </summary>
+        public int y { get; internal set; }
+        /// <summary>
+        /// Can only be set within the same namespace, but only set if you don't
+        /// want to fire the resized event.
+        /// </summary>
+        public int width { get; internal set; }
+        /// <summary>
+        /// Can only be set within the same namespace, but only set if you don't
+        /// want to fire the resized event.
+        /// </summary>
+        public int height { get; internal set; }
+        /// <summary>
+        /// When set, calls the Reposition method, which then fires the repositioned event
+        /// </summary>
         public Vector2 position { get { return new Vector2(x, y); } set { Reposition(value); } }
+        /// <summary>
+        /// When set, calls the Resize method, which then fires the resized event
+        /// </summary>
         public Vector2 size { get { return new Vector2(width, height); } set { Resize(value); } }
 
+        public OxGUIHelpers.Anchor anchor;
         protected Texture2D[,] appearances = new Texture2D[3, 9];
         protected Vector2 centerPercentSize = new Vector2(0.5f, 0.5f);
         public OxGUIHelpers.ElementState currentState { get; private set; }
@@ -30,7 +53,10 @@ namespace OxGUI2
         }
         public OxBase(int x, int y, int width, int height) : this(new Vector2(x, y), new Vector2(width, height)) { }
 
-        public abstract void Draw();
+        public virtual void Draw()
+        {
+            PaintTextures();
+        }
 
         protected virtual void PaintTextures()
         {
@@ -39,25 +65,25 @@ namespace OxGUI2
                 UpdateNonPixeliness();
                 //GUIStyle blankStyle = new GUIStyle();
                 float centerWidth = width * centerPercentSize.x, centerHeight = height * centerPercentSize.y, rightSideWidth = (width - centerWidth) * origInfo[(int)currentState].percentRight, leftSideWidth = (width - centerWidth) * (1 - origInfo[(int)currentState].percentRight), topSideHeight = (height - centerHeight) * origInfo[(int)currentState].percentTop, bottomSideHeight = (height - centerHeight) * (1 - origInfo[(int)currentState].percentTop), partX = x - (width / 2), partY = y - (height / 2);
-                GUI.DrawTexture(new Rect(partX, partY, leftSideWidth, topSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.topLeft)]);
+                GUI.DrawTexture(new Rect(partX, partY, leftSideWidth, topSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.Top_Left)]);
                 partX += leftSideWidth;
-                GUI.DrawTexture(new Rect(partX, partY, centerWidth, topSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.top)]);
+                GUI.DrawTexture(new Rect(partX, partY, centerWidth, topSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.Top)]);
                 partX += centerWidth;
-                GUI.DrawTexture(new Rect(partX, partY, rightSideWidth, topSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.topRight)]);
+                GUI.DrawTexture(new Rect(partX, partY, rightSideWidth, topSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.Top_Right)]);
                 partX -= (leftSideWidth + centerWidth);
                 partY += topSideHeight;
-                GUI.DrawTexture(new Rect(partX, partY, leftSideWidth, centerHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.left)]);
+                GUI.DrawTexture(new Rect(partX, partY, leftSideWidth, centerHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.Left)]);
                 partX += leftSideWidth;
-                GUI.DrawTexture(new Rect(partX, partY, centerWidth, centerHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.center)]);
+                GUI.DrawTexture(new Rect(partX, partY, centerWidth, centerHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.Center)]);
                 partX += centerWidth;
-                GUI.DrawTexture(new Rect(partX, partY, rightSideWidth, centerHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.right)]);
+                GUI.DrawTexture(new Rect(partX, partY, rightSideWidth, centerHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.Right)]);
                 partX -= (leftSideWidth + centerWidth);
                 partY += centerHeight;
-                GUI.DrawTexture(new Rect(partX, partY, leftSideWidth, bottomSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.bottomLeft)]);
+                GUI.DrawTexture(new Rect(partX, partY, leftSideWidth, bottomSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.Bottom_Left)]);
                 partX += leftSideWidth;
-                GUI.DrawTexture(new Rect(partX, partY, centerWidth, bottomSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.bottom)]);
+                GUI.DrawTexture(new Rect(partX, partY, centerWidth, bottomSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.Bottom)]);
                 partX += centerWidth;
-                GUI.DrawTexture(new Rect(partX, partY, rightSideWidth, bottomSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.bottomRight)]);
+                GUI.DrawTexture(new Rect(partX, partY, rightSideWidth, bottomSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.Bottom_Right)]);
             }
         }
         private void UpdateNonPixeliness()
@@ -80,7 +106,7 @@ namespace OxGUI2
             centerPercentHeight = (height - calculatedSideHeight) / height;
         }
 
-        #region Interfaces
+        #region Extra Shared Attributes
         public event OxGUIHelpers.MovedHandler moved;
         public event OxGUIHelpers.ResizedHandler resized;
         public event OxGUIHelpers.HighlightedHandler highlightedChanged;
@@ -114,16 +140,14 @@ namespace OxGUI2
                 width = Mathf.RoundToInt(newSize.x);
                 height = Mathf.RoundToInt(newSize.y);
 
-                //centerPercentWidth = (width - originalSideWidth) / width;
-                //centerPercentHeight = (height - originalSideHeight) / height;
                 FireResizedEvent(delta);
             }
         }
 
         public void Highlight(bool onOff)
         {
-            if (onOff) currentState = OxGUIHelpers.ElementState.highlighted;
-            else currentState = OxGUIHelpers.ElementState.normal;
+            if (onOff) currentState = OxGUIHelpers.ElementState.Highlighted;
+            else currentState = OxGUIHelpers.ElementState.Normal;
             FireHighlightChangedEvent(onOff);
         }
 
@@ -149,12 +173,12 @@ namespace OxGUI2
         }
         public void MouseDown()
         {
-            currentState = OxGUIHelpers.ElementState.down;
+            currentState = OxGUIHelpers.ElementState.Down;
             FireMouseDownEvent();
         }
         public void MouseUp()
         {
-            currentState = OxGUIHelpers.ElementState.normal;
+            currentState = OxGUIHelpers.ElementState.Normal;
             Press();
             FireMouseUpEvent();
         }
@@ -172,8 +196,8 @@ namespace OxGUI2
                     appearances[((int)type), i] = safeTexture;
                 }
 
-                float centerWidth = appearance[(int)OxGUIHelpers.TexturePositioning.center].width, rightWidth = appearance[(int)OxGUIHelpers.TexturePositioning.right].width, leftWidth = appearance[(int)OxGUIHelpers.TexturePositioning.left].width;
-                float centerHeight = appearance[(int)OxGUIHelpers.TexturePositioning.center].height, topHeight = appearance[(int)OxGUIHelpers.TexturePositioning.top].height, bottomHeight = appearance[(int)OxGUIHelpers.TexturePositioning.bottom].height;
+                float centerWidth = appearance[(int)OxGUIHelpers.TexturePositioning.Center].width, rightWidth = appearance[(int)OxGUIHelpers.TexturePositioning.Right].width, leftWidth = appearance[(int)OxGUIHelpers.TexturePositioning.Left].width;
+                float centerHeight = appearance[(int)OxGUIHelpers.TexturePositioning.Center].height, topHeight = appearance[(int)OxGUIHelpers.TexturePositioning.Top].height, bottomHeight = appearance[(int)OxGUIHelpers.TexturePositioning.Bottom].height;
                 float percentWidth = centerWidth / (centerWidth + rightWidth + leftWidth);
                 float percentHeight = centerHeight / (centerHeight + topHeight + bottomHeight);
 
@@ -221,11 +245,11 @@ namespace OxGUI2
         }
         protected void FireMouseDownEvent()
         {
-            if (mouseDown != null) mouseDown(this, OxGUIHelpers.MouseButton.leftButton);
+            if (mouseDown != null) mouseDown(this, OxGUIHelpers.MouseButton.Left_Button);
         }
         protected void FireMouseUpEvent()
         {
-            if (mouseUp != null) mouseUp(this, OxGUIHelpers.MouseButton.leftButton);
+            if (mouseUp != null) mouseUp(this, OxGUIHelpers.MouseButton.Left_Button);
         }
         #endregion
     }

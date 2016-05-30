@@ -1,40 +1,47 @@
 ﻿using UnityEngine;
-using OxGUI2;
+using OxGUI;
 
-public class ExampleOxGUI2 : MonoBehaviour {
+public class ExampleOxGUI : MonoBehaviour {
 
-    OxButton button = new OxButton(Screen.width / 2, Screen.height / 2, 300, 300);
-    public float buttonWidth = 256, buttonHeight = 256;
-    public float centerWidth = 0.5f, centerHeight = 0.5f;
+    OxPanel panel = new OxPanel(Screen.width / 2, Screen.height / 2, 300, 500);
+    public float panelWidth = 300, panelHeight = 500;
+    OxButton button = new OxButton(Screen.width / 2, Screen.height / 2, 48, 48);
+    public float buttonWidth = 48, buttonHeight = 48;
 
     void Start()
     {
+        AddTexturesToPanel();
         AddTexturesToButton();
-
-        button.resized += Button_resized;
-
-        centerWidth = button.centerPercentWidth;
-        centerHeight = button.centerPercentHeight;
-    }
-
-    private void Button_resized(object obj, Vector2 delta)
-    {
-        centerWidth = button.centerPercentWidth;
-        centerHeight = button.centerPercentHeight;
     }
 
     void OnGUI ()
     {
+        if (panel.width != panelWidth || panel.height != panelHeight)
+            panel.size = new Vector2(panelWidth, panelHeight);
+        panel.Draw();
+
         if(button.size.x != buttonWidth || button.size.y != buttonHeight)
             button.size = new Vector2(buttonWidth, buttonHeight);
-        button.centerPercentWidth = centerWidth;
-        button.centerPercentHeight = centerHeight;
         button.Draw();
     }
 
+    private void AddTexturesToPanel()
+    {
+        panel.AddAppearance(OxGUIHelpers.ElementState.Normal, new Texture2D[] {
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayTopLeft"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayTop"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayTopRight"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayLeft"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayCenter"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayRight"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayBottomLeft"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayBottom"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayBottomRight")
+        });
+    }
     private void AddTexturesToButton()
     {
-        button.AddAppearance(OxGUIHelpers.ElementState.normal, new Texture2D[] {
+        button.AddAppearance(OxGUIHelpers.ElementState.Normal, new Texture2D[] {
             Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueTopLeft"),
             Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueTop"),
             Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueTopRight"),
@@ -46,7 +53,7 @@ public class ExampleOxGUI2 : MonoBehaviour {
             Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueBottomRight")
         });
 
-        button.AddAppearance(OxGUIHelpers.ElementState.highlighted, new Texture2D[] {
+        button.AddAppearance(OxGUIHelpers.ElementState.Highlighted, new Texture2D[] {
             Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueTopLeft"),
             Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueTop"),
             Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueTopRight"),
@@ -58,7 +65,7 @@ public class ExampleOxGUI2 : MonoBehaviour {
             Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueBottomRight")
         });
 
-        button.AddAppearance(OxGUIHelpers.ElementState.down, new Texture2D[] {
+        button.AddAppearance(OxGUIHelpers.ElementState.Down, new Texture2D[] {
             Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueTopLeft"),
             Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueTop"),
             Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueTopRight"),
