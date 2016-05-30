@@ -4,7 +4,7 @@ using OxGUI2;
 public class ExampleOxGUI2 : MonoBehaviour {
 
     OxButton button = new OxButton(Screen.width / 2, Screen.height / 2, 300, 300);
-    public float buttonWidth = 300, buttonHeight = 300;
+    public float buttonWidth = 256, buttonHeight = 256;
     public float centerWidth = 0.5f, centerHeight = 0.5f;
 
     void Start()

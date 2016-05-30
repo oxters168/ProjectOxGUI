@@ -9,7 +9,8 @@ namespace OxGUI2
         public OxGUIHelpers.ElementState currentState { get; private set; }
         public float centerPercentWidth { get { return centerPercentSize.x; } set { if (value >= 0 && value <= 1) centerPercentSize = new Vector2(value, centerPercentSize.y); else throw new System.Exception("Value must be between 0 and 1 inclusive"); } }
         public float centerPercentHeight { get { return centerPercentSize.y; } set { if (value >= 0 && value <= 1) centerPercentSize = new Vector2(centerPercentSize.x, value); else throw new System.Exception("Value must be between 0 and 1 inclusive"); } }
-        private float originalWidth, originalHeight, originalSideWidth, originalSideHeight;
+        private AppearanceOrigInfo[] origInfo = new AppearanceOrigInfo[3];
+        //private float originalWidth, originalHeight, originalSideWidth, percentRight, originalSideHeight, percentTop;
         //public bool down { get; private set; }
         //public bool highlighted { get; private set; }
 
@@ -46,29 +47,48 @@ namespace OxGUI2
         {
             if (visible)
             {
+                UpdateNonPixeliness();
                 //GUIStyle blankStyle = new GUIStyle();
-                float centerWidth = width * centerPercentSize.x, centerHeight = height * centerPercentSize.y, horizontalSideWidth = (width - centerWidth) / 2, verticalSideHeight = (height - centerHeight) / 2, partX = x - (centerWidth / 2), partY = y - (centerHeight / 2);
+                float centerWidth = width * centerPercentSize.x, centerHeight = height * centerPercentSize.y, rightSideWidth = (width - centerWidth) * origInfo[(int)currentState].percentRight, leftSideWidth = (width - centerWidth) * (1 - origInfo[(int)currentState].percentRight), topSideHeight = (height - centerHeight) * origInfo[(int)currentState].percentTop, bottomSideHeight = (height - centerHeight) * (1 - origInfo[(int)currentState].percentTop), partX = x - (width / 2), partY = y - (height / 2);
+                GUI.DrawTexture(new Rect(partX, partY, leftSideWidth, topSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.topLeft)]);
+                partX += leftSideWidth;
+                GUI.DrawTexture(new Rect(partX, partY, centerWidth, topSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.top)]);
+                partX += centerWidth;
+                GUI.DrawTexture(new Rect(partX, partY, rightSideWidth, topSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.topRight)]);
+                partX -= (leftSideWidth + centerWidth);
+                partY += topSideHeight;
+                GUI.DrawTexture(new Rect(partX, partY, leftSideWidth, centerHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.left)]);
+                partX += leftSideWidth;
                 GUI.DrawTexture(new Rect(partX, partY, centerWidth, centerHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.center)]);
-                partX -= horizontalSideWidth;
-                GUI.DrawTexture(new Rect(partX, partY, horizontalSideWidth, centerHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.left)]);
-                partX += horizontalSideWidth + centerWidth;
-                GUI.DrawTexture(new Rect(partX, partY, horizontalSideWidth, centerHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.right)]);
-                Debug.Log(horizontalSideWidth);
-                partX -= centerWidth;
-                partY -= verticalSideHeight;
-                GUI.DrawTexture(new Rect(partX, partY, centerWidth, verticalSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.top)]);
-                partX -= horizontalSideWidth;
-                GUI.DrawTexture(new Rect(partX, partY, horizontalSideWidth, verticalSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.topLeft)]);
-                partX += horizontalSideWidth + centerWidth;
-                GUI.DrawTexture(new Rect(partX, partY, horizontalSideWidth, verticalSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.topRight)]);
-                partX -= centerWidth;
-                partY += verticalSideHeight + centerHeight;
-                GUI.DrawTexture(new Rect(partX, partY, centerWidth, verticalSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.bottom)]);
-                partX -= horizontalSideWidth;
-                GUI.DrawTexture(new Rect(partX, partY, horizontalSideWidth, verticalSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.bottomLeft)]);
-                partX += horizontalSideWidth + centerWidth;
-                GUI.DrawTexture(new Rect(partX, partY, horizontalSideWidth, verticalSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.bottomRight)]);
+                partX += centerWidth;
+                GUI.DrawTexture(new Rect(partX, partY, rightSideWidth, centerHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.right)]);
+                partX -= (leftSideWidth + centerWidth);
+                partY += centerHeight;
+                GUI.DrawTexture(new Rect(partX, partY, leftSideWidth, bottomSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.bottomLeft)]);
+                partX += leftSideWidth;
+                GUI.DrawTexture(new Rect(partX, partY, centerWidth, bottomSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.bottom)]);
+                partX += centerWidth;
+                GUI.DrawTexture(new Rect(partX, partY, rightSideWidth, bottomSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.bottomRight)]);
             }
+        }
+        private void UpdateNonPixeliness()
+        {
+            float calculatedSideWidth = origInfo[(int)currentState].originalSideWidth, calculatedSideHeight = origInfo[(int)currentState].originalSideHeight;
+            float horizontalPercentDifference = width / origInfo[(int)currentState].originalWidth, verticalPercentDifference = height / origInfo[(int)currentState].originalHeight;
+
+            if (width < origInfo[(int)currentState].originalWidth && horizontalPercentDifference < verticalPercentDifference)
+            {
+                calculatedSideWidth *= horizontalPercentDifference;
+                calculatedSideHeight *= horizontalPercentDifference;
+            }
+            else if (height < origInfo[(int)currentState].originalHeight)
+            {
+                calculatedSideWidth *= verticalPercentDifference;
+                calculatedSideHeight *= verticalPercentDifference;
+            }
+
+            centerPercentWidth = (width - calculatedSideWidth) / width;
+            centerPercentHeight = (height - calculatedSideHeight) / height;
         }
 
         #region Interface Implementations
@@ -131,28 +151,9 @@ namespace OxGUI2
                 width = Mathf.RoundToInt(newSize.x);
                 height = Mathf.RoundToInt(newSize.y);
 
-                UpdateNonPixeliness();
+                //UpdateNonPixeliness();
                 FireResizedEvent(delta);
             }
-        }
-        private void UpdateNonPixeliness()
-        {
-            float calculatedSideWidth = originalSideWidth, calculatedSideHeight = originalSideHeight;
-            float horizontalPercentDifference = width / originalWidth, verticalPercentDifference = height / originalHeight;
-
-            if (width < originalWidth && horizontalPercentDifference < verticalPercentDifference)
-            {
-                calculatedSideWidth *= horizontalPercentDifference;
-                calculatedSideHeight *= horizontalPercentDifference;
-            }
-            else if(height < originalHeight)
-            {
-                calculatedSideWidth *= verticalPercentDifference;
-                calculatedSideHeight *= verticalPercentDifference;
-            }
-
-            centerPercentWidth = (width - calculatedSideWidth) / width;
-            centerPercentHeight = (height - calculatedSideHeight) / height;
         }
 
         public void AddAppearance(OxGUIHelpers.ElementState type, Texture2D[] appearance)
@@ -176,14 +177,21 @@ namespace OxGUI2
                 centerPercentWidth = percentWidth;
                 centerPercentHeight = percentHeight;
 
-                originalWidth = leftWidth + centerWidth + rightWidth;
-                originalHeight = topHeight + centerHeight + bottomHeight;
-                originalSideWidth = leftWidth + rightWidth;
-                originalSideHeight = topHeight + bottomHeight;
+                origInfo[(int)type].originalWidth = leftWidth + centerWidth + rightWidth;
+                origInfo[(int)type].originalHeight = topHeight + centerHeight + bottomHeight;
+                origInfo[(int)type].originalSideWidth = leftWidth + rightWidth;
+                origInfo[(int)type].percentRight = rightWidth / origInfo[(int)type].originalSideWidth;
+                origInfo[(int)type].originalSideHeight = topHeight + bottomHeight;
+                origInfo[(int)type].percentTop = topHeight / origInfo[(int)type].originalSideHeight;
                 //centerPercentSize = new Vector2(percentWidth, percentHeight);
                 //Debug.Log("Center Percent Size: " + centerPercentSize + " " + centerWidth + " / " + (centerWidth + leftWidth + rightWidth) + " " + centerHeight + " / " + (centerHeight + topHeight + bottomHeight));
             }
         }
         #endregion
+    }
+
+    struct AppearanceOrigInfo
+    {
+        public float originalWidth, originalHeight, originalSideWidth, percentRight, originalSideHeight, percentTop;
     }
 }
