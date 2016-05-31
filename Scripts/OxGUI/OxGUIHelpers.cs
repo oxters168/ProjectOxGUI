@@ -9,7 +9,7 @@ namespace OxGUI
         public enum ElementState { Normal, Highlighted, Down, }
         public enum TexturePositioning { Top_Left, Top, Top_Right, Left, Center, Right, Bottom_Left, Bottom, Bottom_Right }
         [Flags]
-        public enum Anchor { Bottom, Left, None, Right, Top, }
+        public enum Anchor { None = 0x0, Left = 0x1, Right = 0x2, Bottom = 0x4, Top = 0x8, }
 
         public delegate void MovedHandler(object obj, Vector2 delta);
         public delegate void ResizedHandler(object obj, Vector2 delta);

@@ -1,6 +1,6 @@
 ﻿namespace OxGUI
 {
-    public interface OxContainer
+    public interface OxContainable
     {
         /// <summary>
         /// Adds items in the parameter into the items list. If an item in the parameter is null, an exception is thrown.

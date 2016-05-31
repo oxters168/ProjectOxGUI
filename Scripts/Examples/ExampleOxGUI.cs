@@ -1,43 +1,39 @@
 ﻿using UnityEngine;
 using OxGUI;
 
-public class ExampleOxGUI : MonoBehaviour {
-
-    OxPanel panel = new OxPanel(Screen.width / 2, Screen.height / 2, 300, 500);
-    public float panelWidth = 300, panelHeight = 500;
-    OxButton button = new OxButton(Screen.width / 2, Screen.height / 2, 48, 48);
-    public float buttonWidth = 48, buttonHeight = 48;
+public class ExampleOxGUI : MonoBehaviour
+{
+    OxPanel panel;
+    public int panelX, panelY, panelWidth, panelHeight;
+    OxButton button;
+    public int buttonX, buttonY, buttonWidth, buttonHeight;
+    public bool top, bottom, left, right;
 
     void Start()
     {
-        AddTexturesToPanel();
-        AddTexturesToButton();
+        InitializeButton();
+        InitializePanel();
     }
 
     void OnGUI ()
     {
+        SetButtonAnchor();
+
+        if (panel.x != panelX || panel.y != panelY)
+            panel.position = new Vector2(panelX, panelY);
         if (panel.width != panelWidth || panel.height != panelHeight)
             panel.size = new Vector2(panelWidth, panelHeight);
         panel.Draw();
-
-        if(button.size.x != buttonWidth || button.size.y != buttonHeight)
-            button.size = new Vector2(buttonWidth, buttonHeight);
-        button.Draw();
     }
 
-    private void AddTexturesToPanel()
+    private void InitializeButton()
     {
-        panel.AddAppearance(OxGUIHelpers.ElementState.Normal, new Texture2D[] {
-            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayTopLeft"),
-            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayTop"),
-            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayTopRight"),
-            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayLeft"),
-            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayCenter"),
-            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayRight"),
-            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayBottomLeft"),
-            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayBottom"),
-            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayBottomRight")
-        });
+        buttonWidth = 48;
+        buttonHeight = 48;
+        buttonX = (Screen.width / 2) - (buttonWidth / 2);
+        buttonY = (Screen.height / 2) - (buttonHeight / 2);
+        button = new OxButton(buttonX, buttonY, buttonWidth, buttonHeight);
+        AddTexturesToButton();
     }
     private void AddTexturesToButton()
     {
@@ -75,6 +71,42 @@ public class ExampleOxGUI : MonoBehaviour {
             Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueBottomLeft"),
             Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueBottom"),
             Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueBottomRight")
+        });
+    }
+    private void SetButtonAnchor()
+    {
+        if (top) button.anchor |= OxGUIHelpers.Anchor.Top;
+        else button.anchor &= ~OxGUIHelpers.Anchor.Top;
+        if (bottom) button.anchor |= OxGUIHelpers.Anchor.Bottom;
+        else button.anchor &= ~OxGUIHelpers.Anchor.Bottom;
+        if (left) button.anchor |= OxGUIHelpers.Anchor.Left;
+        else button.anchor &= ~OxGUIHelpers.Anchor.Left;
+        if (right) button.anchor |= OxGUIHelpers.Anchor.Right;
+        else button.anchor &= ~OxGUIHelpers.Anchor.Right;
+    }
+
+    private void InitializePanel()
+    {
+        panelWidth = 300;
+        panelHeight = 500;
+        panelX = (Screen.width / 2) - (panelWidth / 2);
+        panelY = (Screen.height / 2) - (panelHeight / 2);
+        panel = new OxPanel(panelX, panelY, panelWidth, panelHeight);
+        panel.AddItem(button);
+        AddTexturesToPanel();
+    }
+    private void AddTexturesToPanel()
+    {
+        panel.AddAppearance(OxGUIHelpers.ElementState.Normal, new Texture2D[] {
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayTopLeft"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayTop"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayTopRight"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayLeft"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayCenter"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayRight"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayBottomLeft"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayBottom"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayBottomRight")
         });
     }
 }

@@ -16,7 +16,7 @@ namespace OxGUI
         private void ListenToMouse()
         {
             Vector2 mousePosition = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
-            if (mousePosition.x > (x - (width / 2f)) && mousePosition.x < (x + (width / 2f)) && mousePosition.y > (y - (height / 2f)) && mousePosition.y < (y + (height / 2f)))
+            if (mousePosition.x > (x) && mousePosition.x < (x + width) && mousePosition.y > (y) && mousePosition.y < (y + height))
             {
                 if (currentState == OxGUIHelpers.ElementState.Normal) Highlight(true);
                 if (Input.GetMouseButton(0))
