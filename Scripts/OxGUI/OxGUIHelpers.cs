@@ -14,8 +14,11 @@ namespace OxGUI
         public delegate void MovedHandler(object obj, Vector2 delta);
         public delegate void ResizedHandler(object obj, Vector2 delta);
         public delegate void PressedHandler(object obj);
+        public delegate void DraggedHandler(object obj, Vector2 delta);
+        public delegate void ReleasedHandler(object obj);
         public delegate void HighlightedHandler(object obj, bool onOff);
         public delegate void SelectedHandler(object obj, bool onOff);
+        public delegate void MouseMovedHandler(object obj, Vector2 delta);
         public delegate void MouseDownHandler(object obj, MouseButton button);
         public delegate void MouseUpHandler(object obj, MouseButton button);
         public delegate void MouseOverHandler(object obj);

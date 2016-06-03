@@ -4,9 +4,7 @@ using OxGUI;
 public class ExampleOxGUI : MonoBehaviour
 {
     OxPanel panel;
-    public int panelX, panelY, panelWidth, panelHeight;
     OxButton button;
-    public int buttonX, buttonY, buttonWidth, buttonHeight;
     public bool top, bottom, left, right;
 
     void Start()
@@ -18,20 +16,12 @@ public class ExampleOxGUI : MonoBehaviour
     void OnGUI ()
     {
         SetButtonAnchor();
-
-        if (panel.x != panelX || panel.y != panelY)
-            panel.position = new Vector2(panelX, panelY);
-        if (panel.width != panelWidth || panel.height != panelHeight)
-            panel.size = new Vector2(panelWidth, panelHeight);
         panel.Draw();
     }
 
     private void InitializeButton()
     {
-        buttonWidth = 48;
-        buttonHeight = 48;
-        buttonX = (Screen.width / 2) - (buttonWidth / 2);
-        buttonY = (Screen.height / 2) - (buttonHeight / 2);
+        int buttonWidth = 48, buttonHeight = 48, buttonX = (Screen.width / 2) - (buttonWidth / 2), buttonY = (Screen.height / 2) - (buttonHeight / 2);
         button = new OxButton(buttonX, buttonY, buttonWidth, buttonHeight);
         AddTexturesToButton();
     }
@@ -87,10 +77,7 @@ public class ExampleOxGUI : MonoBehaviour
 
     private void InitializePanel()
     {
-        panelWidth = 300;
-        panelHeight = 500;
-        panelX = (Screen.width / 2) - (panelWidth / 2);
-        panelY = (Screen.height / 2) - (panelHeight / 2);
+        int panelWidth = 300, panelHeight = 500, panelX = (Screen.width / 2) - (panelWidth / 2), panelY = (Screen.height / 2) - (panelHeight / 2);
         panel = new OxPanel(panelX, panelY, panelWidth, panelHeight);
         panel.AddItem(button);
         AddTexturesToPanel();

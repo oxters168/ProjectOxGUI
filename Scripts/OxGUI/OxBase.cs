@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
 namespace OxGUI
 {
@@ -40,9 +41,9 @@ namespace OxGUI
         protected Texture2D[,] appearances = new Texture2D[3, 9];
         protected Vector2 centerPercentSize = new Vector2(0.5f, 0.5f);
         public OxGUIHelpers.ElementState currentState { get; private set; }
-        public float centerPercentWidth { get { return centerPercentSize.x; } set { if (value >= 0 && value <= 1) centerPercentSize = new Vector2(value, centerPercentSize.y); else throw new System.Exception("Value must be between 0 and 1 inclusive"); } }
-        public float centerPercentHeight { get { return centerPercentSize.y; } set { if (value >= 0 && value <= 1) centerPercentSize = new Vector2(centerPercentSize.x, value); else throw new System.Exception("Value must be between 0 and 1 inclusive"); } }
-        private AppearanceOrigInfo[] origInfo = new AppearanceOrigInfo[3];
+        public float centerPercentWidth { get { return centerPercentSize.x; } set { if (value >= 0 && value <= 1) centerPercentSize = new Vector2(value, centerPercentSize.y); } }
+        public float centerPercentHeight { get { return centerPercentSize.y; } set { if (value >= 0 && value <= 1) centerPercentSize = new Vector2(centerPercentSize.x, value); } }
+        internal AppearanceOrigInfo[] origInfo = new AppearanceOrigInfo[3];
 
         public OxBase(Vector2 position, Vector2 size)
         {
@@ -55,48 +56,86 @@ namespace OxGUI
 
         public virtual void Draw()
         {
+            ManageActiveElements();
+            InteractionSystem();
             PaintTextures();
         }
 
+        private static int currentIndex = 0;
+        private static bool alternator = false;
+        private bool currentAlteration = false;
+        private void ManageActiveElements()
+        {
+            if(activeElements.IndexOf(this) == 0)
+            {
+                currentAlteration = !currentAlteration;
+                currentIndex = 0;
+            }
+
+            if (enabled)
+            {
+                if (activeElements.IndexOf(this) < 0)
+                {
+                    activeElements.Insert(currentIndex, this);
+                    currentIndex++;
+                }
+                currentAlteration = alternator;
+            }
+            else
+            {
+                if (activeElements.IndexOf(this) > -1)
+                {
+                    activeElements.Remove(this);
+                }
+            }
+
+            for(int i = currentIndex - 1; i >= 0; i--)
+            {
+                if(activeElements[i] == null || activeElements[i].currentAlteration != alternator)
+                {
+                    activeElements.RemoveAt(i);
+                    currentIndex--;
+                }
+            }
+        }
         protected virtual void PaintTextures()
         {
             if (visible)
             {
-                UpdateNonPixeliness();
+                int availableState = ((int)GetTexturableState());
+                Texture2D currentTexture = null;
 
-                float centerWidth = width * centerPercentSize.x, centerHeight = height * centerPercentSize.y, rightSideWidth = (width - centerWidth) * origInfo[(int)currentState].percentRight, leftSideWidth = (width - centerWidth) * (1 - origInfo[(int)currentState].percentRight), topSideHeight = (height - centerHeight) * origInfo[(int)currentState].percentTop, bottomSideHeight = (height - centerHeight) * (1 - origInfo[(int)currentState].percentTop), partX = x, partY = y;
-                GUI.DrawTexture(new Rect(partX, partY, leftSideWidth, topSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.Top_Left)]);
-                partX += leftSideWidth;
-                GUI.DrawTexture(new Rect(partX, partY, centerWidth, topSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.Top)]);
-                partX += centerWidth;
-                GUI.DrawTexture(new Rect(partX, partY, rightSideWidth, topSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.Top_Right)]);
-                partX -= (leftSideWidth + centerWidth);
-                partY += topSideHeight;
-                GUI.DrawTexture(new Rect(partX, partY, leftSideWidth, centerHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.Left)]);
-                partX += leftSideWidth;
-                GUI.DrawTexture(new Rect(partX, partY, centerWidth, centerHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.Center)]);
-                partX += centerWidth;
-                GUI.DrawTexture(new Rect(partX, partY, rightSideWidth, centerHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.Right)]);
-                partX -= (leftSideWidth + centerWidth);
-                partY += centerHeight;
-                GUI.DrawTexture(new Rect(partX, partY, leftSideWidth, bottomSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.Bottom_Left)]);
-                partX += leftSideWidth;
-                GUI.DrawTexture(new Rect(partX, partY, centerWidth, bottomSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.Bottom)]);
-                partX += centerWidth;
-                GUI.DrawTexture(new Rect(partX, partY, rightSideWidth, bottomSideHeight), appearances[((int)currentState), ((int)OxGUIHelpers.TexturePositioning.Bottom_Right)]);
+                UpdateNonPixeliness(availableState);
+
+                float centerWidth = width * centerPercentSize.x, centerHeight = height * centerPercentSize.y, rightSideWidth = (width - centerWidth) * origInfo[availableState].percentRight, leftSideWidth = (width - centerWidth) * (1 - origInfo[availableState].percentRight), topSideHeight = (height - centerHeight) * origInfo[availableState].percentTop, bottomSideHeight = (height - centerHeight) * (1 - origInfo[availableState].percentTop), partX = x, partY = y;
+
+                for(int row = 0; row < 3; row++)
+                {
+                    for(int col = 0; col < 3; col++)
+                    {
+                        float xPos = partX, yPos = partY, drawWidth = leftSideWidth, drawHeight = topSideHeight;
+                        if (col > 0) { xPos += leftSideWidth; drawWidth = centerWidth; }
+                        if (col > 1) { xPos += centerWidth; drawWidth = rightSideWidth; }
+                        if (row > 0) { yPos += topSideHeight; drawHeight = centerHeight; }
+                        if (row > 1) { yPos += centerHeight; drawHeight = bottomSideHeight; }
+
+                        currentTexture = appearances[availableState, ((row * 3) + col)];
+                        if (currentTexture != null) GUI.DrawTexture(new Rect(xPos, yPos, drawWidth, drawHeight), currentTexture);
+                    }
+                }
             }
         }
-        private void UpdateNonPixeliness()
+        private void UpdateNonPixeliness(int availableState)
         {
-            float calculatedSideWidth = origInfo[(int)currentState].originalSideWidth, calculatedSideHeight = origInfo[(int)currentState].originalSideHeight;
-            float horizontalPercentDifference = width / origInfo[(int)currentState].originalWidth, verticalPercentDifference = height / origInfo[(int)currentState].originalHeight;
+            float calculatedSideWidth = origInfo[availableState].originalSideWidth, calculatedSideHeight = origInfo[availableState].originalSideHeight;
+            float horizontalPercentDifference = width / origInfo[availableState].originalWidth, verticalPercentDifference = height / origInfo[availableState].originalHeight;
 
-            if (width < origInfo[(int)currentState].originalWidth && horizontalPercentDifference < verticalPercentDifference)
+            if (width < origInfo[availableState].originalWidth && horizontalPercentDifference < verticalPercentDifference)
             {
                 calculatedSideWidth *= horizontalPercentDifference;
                 calculatedSideHeight *= horizontalPercentDifference;
             }
-            else if (height < origInfo[(int)currentState].originalHeight)
+            else if (height < origInfo[availableState].originalHeight)
             {
                 calculatedSideWidth *= verticalPercentDifference;
                 calculatedSideHeight *= verticalPercentDifference;
@@ -105,17 +144,84 @@ namespace OxGUI
             centerPercentWidth = (width - calculatedSideWidth) / width;
             centerPercentHeight = (height - calculatedSideHeight) / height;
         }
+        protected OxGUIHelpers.ElementState GetTexturableState()
+        {
+            OxGUIHelpers.ElementState availableState = currentState;
+            if (appearances[((int)availableState), ((int)OxGUIHelpers.TexturePositioning.Center)] == null)
+            {
+                if (appearances[((int)OxGUIHelpers.ElementState.Normal), ((int)OxGUIHelpers.TexturePositioning.Center)] != null) availableState = OxGUIHelpers.ElementState.Normal;
+                if (appearances[((int)OxGUIHelpers.ElementState.Highlighted), ((int)OxGUIHelpers.TexturePositioning.Center)] != null) availableState = OxGUIHelpers.ElementState.Highlighted;
+                if (appearances[((int)OxGUIHelpers.ElementState.Down), ((int)OxGUIHelpers.TexturePositioning.Center)] != null) availableState = OxGUIHelpers.ElementState.Down;
+            }
+            return availableState;
+        }
+
+        #region User Interactibality
+        private static List<OxBase> activeElements = new List<OxBase>();
+        private static OxBase currentlyHighlighted = null, currentlyPressed = null;
+        private static Vector2 prevMousePosition = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
+        private bool mouseIsOver, mouseIsDown;
+        private event OxGUIHelpers.MouseMovedHandler mouseMoved;
+        private event OxGUIHelpers.MouseOverHandler mouseOver;
+        private event OxGUIHelpers.MouseLeaveHandler mouseLeave;
+        private event OxGUIHelpers.MouseDownHandler mouseDown;
+        private event OxGUIHelpers.MouseUpHandler mouseUp;
+
+        private void InteractionSystem()
+        {
+            if (currentIndex == 0)
+            {
+                Vector2 mousePosition = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
+                for (int i = activeElements.Count - 1; i >= 0; i--)
+                {
+                    OxBase element = activeElements[i];
+                    if (element != null && element.enabled)
+                    {
+                        if (mousePosition.x > (element.x) && mousePosition.x < (element.x + element.width) && mousePosition.y > (element.y) && mousePosition.y < (element.y + element.height))
+                        {
+                            if (!element.mouseIsOver && currentlyHighlighted == null) { element.FireMouseOverEvent(); element.mouseIsOver = true; element.Highlight(true); }
+                        }
+                        else
+                        {
+                            if (element.mouseIsOver) { element.FireMouseLeaveEvent(); element.mouseIsOver = false; element.Highlight(false); }
+                        }
+                        if (Input.GetMouseButton(0))
+                        {
+                            if (element.mouseIsOver && !element.mouseIsDown && currentlyPressed == null) { element.FireMouseDownEvent(); element.mouseIsDown = true; element.Press(); }
+                        }
+                        else
+                        {
+                            if (element.mouseIsDown) { element.FireMouseUpEvent(); element.mouseIsDown = false; element.Release(); }
+                        }
+
+                        if (element.mouseIsOver) currentlyHighlighted = element;
+                        if (element.mouseIsDown) currentlyPressed = element;
+
+                        if (Vector2.Distance(prevMousePosition, mousePosition) > 0)
+                        {
+                            element.FireMouseMovedEvent(mousePosition - prevMousePosition);
+                            if (element.mouseIsDown)
+                            {
+                                element.FireDraggedEvent(mousePosition - prevMousePosition);
+                            }
+                        }
+                    }
+                }
+                currentlyHighlighted = null;
+                currentlyPressed = null;
+                prevMousePosition = mousePosition;
+            }
+        }
+        #endregion
 
         #region Extra Shared Attributes
         public event OxGUIHelpers.MovedHandler moved;
+        public event OxGUIHelpers.DraggedHandler dragged;
         public event OxGUIHelpers.ResizedHandler resized;
         public event OxGUIHelpers.HighlightedHandler highlightedChanged;
         public event OxGUIHelpers.PressedHandler pressed;
+        public event OxGUIHelpers.ReleasedHandler released;
         public event OxGUIHelpers.SelectedHandler selected;
-        public event OxGUIHelpers.MouseOverHandler mouseOver;
-        public event OxGUIHelpers.MouseLeaveHandler mouseLeave;
-        public event OxGUIHelpers.MouseDownHandler mouseDown;
-        public event OxGUIHelpers.MouseUpHandler mouseUp;
 
         public virtual void Reposition(int newX, int newY)
         {
@@ -137,6 +243,7 @@ namespace OxGUI
             Vector2 delta = newSize - size;
             if (delta != Vector2.zero)
             {
+                Debug.Log(delta);
                 width = Mathf.RoundToInt(newSize.x);
                 height = Mathf.RoundToInt(newSize.y);
 
@@ -144,43 +251,22 @@ namespace OxGUI
             }
         }
 
-        public void Highlight(bool onOff)
+        public virtual void Highlight(bool onOff)
         {
             if (onOff) currentState = OxGUIHelpers.ElementState.Highlighted;
             else currentState = OxGUIHelpers.ElementState.Normal;
             FireHighlightChangedEvent(onOff);
         }
-
-        public void Press()
-        {
-            FirePressedEvent();
-        }
-
-        public void Select(bool onOff)
-        {
-            FireSelectedEvent(onOff);
-        }
-
-        public void MouseOver()
-        {
-            Highlight(true);
-            FireMouseOverEvent();
-        }
-        public void MouseLeave()
-        {
-            Highlight(false);
-            FireMouseLeaveEvent();
-        }
-        public void MouseDown()
+        public virtual void Press()
         {
             currentState = OxGUIHelpers.ElementState.Down;
-            FireMouseDownEvent();
+            FirePressedEvent();
         }
-        public void MouseUp()
+        public virtual void Release()
         {
-            currentState = OxGUIHelpers.ElementState.Normal;
-            Press();
-            FireMouseUpEvent();
+            if(mouseIsOver) currentState = OxGUIHelpers.ElementState.Highlighted;
+            else currentState = OxGUIHelpers.ElementState.Normal;
+            FireReleasedEvent();
         }
 
         public void AddAppearance(OxGUIHelpers.ElementState type, Texture2D[] appearance)
@@ -223,6 +309,10 @@ namespace OxGUI
         {
             if (moved != null) moved(this, delta);
         }
+        protected void FireDraggedEvent(Vector2 delta)
+        {
+            if (dragged != null) dragged(this, delta);
+        }
         protected void FireHighlightChangedEvent(bool onOff)
         {
             if (highlightedChanged != null) highlightedChanged(this, onOff);
@@ -231,9 +321,18 @@ namespace OxGUI
         {
             if (pressed != null) pressed(this);
         }
+        protected void FireReleasedEvent()
+        {
+            if (released != null) released(this);
+        }
         protected void FireSelectedEvent(bool onOff)
         {
             if (selected != null) selected(this, onOff);
+        }
+
+        protected void FireMouseMovedEvent(Vector2 delta)
+        {
+            if (mouseMoved != null) mouseMoved(this, delta);
         }
         protected void FireMouseOverEvent()
         {
@@ -254,7 +353,7 @@ namespace OxGUI
         #endregion
     }
 
-    struct AppearanceOrigInfo
+    internal struct AppearanceOrigInfo
     {
         public float originalWidth, originalHeight, originalSideWidth, percentRight, originalSideHeight, percentTop;
     }
