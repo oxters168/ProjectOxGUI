@@ -37,13 +37,28 @@ namespace OxGUI
         /// </summary>
         public Vector2 size { get { return new Vector2(width, height); } set { Resize(value); } }
 
-        public OxGUIHelpers.Anchor anchor;
+        #region Text Variables
+        public string text = "";
+        public Color textColor = Color.black;
+        public OxGUIHelpers.Alignment textPosition = OxGUIHelpers.Alignment.Center;
+        public OxGUIHelpers.Alignment textAlignment = OxGUIHelpers.Alignment.Center;
+        public int textSize = 12;
+        public bool autoSizeText = true;
+        #endregion
+
+        #region Texture Variables
         protected Texture2D[,] appearances = new Texture2D[3, 9];
         protected Vector2 centerPercentSize = new Vector2(0.5f, 0.5f);
         public OxGUIHelpers.ElementState currentState { get; private set; }
         public float centerPercentWidth { get { return centerPercentSize.x; } set { if (value >= 0 && value <= 1) centerPercentSize = new Vector2(value, centerPercentSize.y); } }
         public float centerPercentHeight { get { return centerPercentSize.y; } set { if (value >= 0 && value <= 1) centerPercentSize = new Vector2(centerPercentSize.x, value); } }
         internal AppearanceOrigInfo[] origInfo = new AppearanceOrigInfo[3];
+        #endregion
+
+        #region Other Variables
+        public OxGUIHelpers.Anchor anchor;
+        public OxGUIHelpers.ElementType elementFunction;
+        #endregion
 
         public OxBase(Vector2 position, Vector2 size)
         {
@@ -52,13 +67,14 @@ namespace OxGUI
             width = Mathf.RoundToInt(size.x);
             height = Mathf.RoundToInt(size.y);
         }
-        public OxBase(int x, int y, int width, int height) : this(new Vector2(x, y), new Vector2(width, height)) { }
+        //public OxBase(int x, int y, int width, int height) : this(new Vector2(x, y), new Vector2(width, height)) { }
+        //public OxBase() : this(new Vector2(0, 0), new Vector2(0, 0)) { }
 
         public virtual void Draw()
         {
             ManageActiveElements();
             InteractionSystem();
-            PaintTextures();
+            Paint();
         }
 
         private static int currentIndex = 0;
@@ -98,31 +114,63 @@ namespace OxGUI
                 }
             }
         }
-        protected virtual void PaintTextures()
+        protected virtual void Paint()
         {
             if (visible)
             {
-                int availableState = ((int)GetTexturableState());
+                AppearanceInfo dimensions = CurrentAppearanceInfo();
                 Texture2D currentTexture = null;
 
-                UpdateNonPixeliness(availableState);
+                UpdateNonPixeliness(((int)dimensions.state));
 
-                float centerWidth = width * centerPercentSize.x, centerHeight = height * centerPercentSize.y, rightSideWidth = (width - centerWidth) * origInfo[availableState].percentRight, leftSideWidth = (width - centerWidth) * (1 - origInfo[availableState].percentRight), topSideHeight = (height - centerHeight) * origInfo[availableState].percentTop, bottomSideHeight = (height - centerHeight) * (1 - origInfo[availableState].percentTop), partX = x, partY = y;
+                float xPos = x, yPos = y, drawWidth = dimensions.leftSideWidth, drawHeight = dimensions.topSideHeight;
 
-                for(int row = 0; row < 3; row++)
+                #region Textures
+                for (int row = 0; row < 3; row++)
                 {
-                    for(int col = 0; col < 3; col++)
+                    for (int col = 0; col < 3; col++)
                     {
-                        float xPos = partX, yPos = partY, drawWidth = leftSideWidth, drawHeight = topSideHeight;
-                        if (col > 0) { xPos += leftSideWidth; drawWidth = centerWidth; }
-                        if (col > 1) { xPos += centerWidth; drawWidth = rightSideWidth; }
-                        if (row > 0) { yPos += topSideHeight; drawHeight = centerHeight; }
-                        if (row > 1) { yPos += centerHeight; drawHeight = bottomSideHeight; }
+                        xPos = x; yPos = y; drawWidth = dimensions.leftSideWidth; drawHeight = dimensions.topSideHeight;
+                        if (col > 0) { xPos += dimensions.leftSideWidth; drawWidth = dimensions.centerWidth; }
+                        if (col > 1) { xPos += dimensions.centerWidth; drawWidth = dimensions.rightSideWidth; }
+                        if (row > 0) { yPos += dimensions.topSideHeight; drawHeight = dimensions.centerHeight; }
+                        if (row > 1) { yPos += dimensions.centerHeight; drawHeight = dimensions.bottomSideHeight; }
 
-                        currentTexture = appearances[availableState, ((row * 3) + col)];
+                        currentTexture = appearances[((int)dimensions.state), ((row * 3) + col)];
                         if (currentTexture != null) GUI.DrawTexture(new Rect(xPos, yPos, drawWidth, drawHeight), currentTexture);
                     }
                 }
+                #endregion
+
+                #region Text
+                GUIStyle textStyle = new GUIStyle();
+                textStyle.fontSize = textSize;
+                textStyle.normal.textColor = textColor;
+                textStyle.alignment = ((TextAnchor)textAlignment);
+                textStyle.clipping = TextClipping.Clip;
+                xPos = x; yPos = y; drawWidth = dimensions.leftSideWidth; drawHeight = dimensions.topSideHeight;
+                if (textPosition == OxGUIHelpers.Alignment.Top || textPosition == OxGUIHelpers.Alignment.Center || textPosition == OxGUIHelpers.Alignment.Bottom)
+                {
+                    xPos += dimensions.leftSideWidth;
+                    drawWidth = dimensions.centerWidth;
+                }
+                else if (textPosition == OxGUIHelpers.Alignment.Top_Right || textPosition == OxGUIHelpers.Alignment.Right || textPosition == OxGUIHelpers.Alignment.Bottom_Right)
+                {
+                    xPos += dimensions.leftSideWidth + dimensions.centerWidth;
+                    drawWidth = dimensions.rightSideWidth;
+                }
+                if (textPosition == OxGUIHelpers.Alignment.Left || textPosition == OxGUIHelpers.Alignment.Center || textPosition == OxGUIHelpers.Alignment.Right)
+                {
+                    yPos += dimensions.topSideHeight;
+                    drawHeight = dimensions.centerHeight;
+                }
+                else if (textPosition == OxGUIHelpers.Alignment.Bottom_Left || textPosition == OxGUIHelpers.Alignment.Bottom || textPosition == OxGUIHelpers.Alignment.Bottom_Right)
+                {
+                    yPos += dimensions.topSideHeight + dimensions.centerHeight;
+                    drawHeight = dimensions.bottomSideHeight;
+                }
+                GUI.Label(new Rect(xPos, yPos, drawWidth, drawHeight), text, textStyle);
+                #endregion
             }
         }
         private void UpdateNonPixeliness(int availableState)
@@ -147,13 +195,79 @@ namespace OxGUI
         protected OxGUIHelpers.ElementState GetTexturableState()
         {
             OxGUIHelpers.ElementState availableState = currentState;
-            if (appearances[((int)availableState), ((int)OxGUIHelpers.TexturePositioning.Center)] == null)
+            if (appearances[((int)availableState), ((int)OxGUIHelpers.Alignment.Center)] == null)
             {
-                if (appearances[((int)OxGUIHelpers.ElementState.Normal), ((int)OxGUIHelpers.TexturePositioning.Center)] != null) availableState = OxGUIHelpers.ElementState.Normal;
-                if (appearances[((int)OxGUIHelpers.ElementState.Highlighted), ((int)OxGUIHelpers.TexturePositioning.Center)] != null) availableState = OxGUIHelpers.ElementState.Highlighted;
-                if (appearances[((int)OxGUIHelpers.ElementState.Down), ((int)OxGUIHelpers.TexturePositioning.Center)] != null) availableState = OxGUIHelpers.ElementState.Down;
+                if (appearances[((int)OxGUIHelpers.ElementState.Normal), ((int)OxGUIHelpers.Alignment.Center)] != null) availableState = OxGUIHelpers.ElementState.Normal;
+                if (appearances[((int)OxGUIHelpers.ElementState.Highlighted), ((int)OxGUIHelpers.Alignment.Center)] != null) availableState = OxGUIHelpers.ElementState.Highlighted;
+                if (appearances[((int)OxGUIHelpers.ElementState.Down), ((int)OxGUIHelpers.Alignment.Center)] != null) availableState = OxGUIHelpers.ElementState.Down;
             }
             return availableState;
+        }
+
+        internal AppearanceInfo CurrentAppearanceInfo()
+        {
+            AppearanceInfo appearanceInfo = new AppearanceInfo();
+            appearanceInfo.state = GetTexturableState();
+            appearanceInfo.centerWidth = width * centerPercentSize.x;
+            appearanceInfo.centerHeight = height * centerPercentSize.y;
+            appearanceInfo.rightSideWidth = (width - appearanceInfo.centerWidth) * origInfo[((int)appearanceInfo.state)].percentRight;
+            appearanceInfo.leftSideWidth = (width - appearanceInfo.centerWidth) * (1 - origInfo[((int)appearanceInfo.state)].percentRight);
+            appearanceInfo.topSideHeight = (height - appearanceInfo.centerHeight) * origInfo[((int)appearanceInfo.state)].percentTop;
+            appearanceInfo.bottomSideHeight = (height - appearanceInfo.centerHeight) * (1 - origInfo[((int)appearanceInfo.state)].percentTop);
+            return appearanceInfo;
+        }
+
+        protected void BlueButtonTexture(OxBase element)
+        {
+            element.AddAppearance(OxGUIHelpers.ElementState.Normal, new Texture2D[] {
+            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueTopLeft"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueTop"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueTopRight"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueLeft"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueCenter"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueRight"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueBottomLeft"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueBottom"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueBottomRight")
+        });
+
+            element.AddAppearance(OxGUIHelpers.ElementState.Highlighted, new Texture2D[] {
+            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueTopLeft"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueTop"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueTopRight"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueLeft"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueCenter"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueRight"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueBottomLeft"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueBottom"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueBottomRight")
+        });
+
+            element.AddAppearance(OxGUIHelpers.ElementState.Down, new Texture2D[] {
+            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueTopLeft"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueTop"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueTopRight"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueLeft"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueCenter"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueRight"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueBottomLeft"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueBottom"),
+            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueBottomRight")
+        });
+        }
+        protected void GreyPanelTexture(OxBase element)
+        {
+            element.AddAppearance(OxGUIHelpers.ElementState.Normal, new Texture2D[] {
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayTopLeft"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayTop"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayTopRight"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayLeft"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayCenter"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayRight"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayBottomLeft"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayBottom"),
+            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayBottomRight")
+            });
         }
 
         #region User Interactibality
@@ -243,7 +357,6 @@ namespace OxGUI
             Vector2 delta = newSize - size;
             if (delta != Vector2.zero)
             {
-                Debug.Log(delta);
                 width = Mathf.RoundToInt(newSize.x);
                 height = Mathf.RoundToInt(newSize.y);
 
@@ -282,8 +395,8 @@ namespace OxGUI
                     appearances[((int)type), i] = safeTexture;
                 }
 
-                float centerWidth = appearance[(int)OxGUIHelpers.TexturePositioning.Center].width, rightWidth = appearance[(int)OxGUIHelpers.TexturePositioning.Right].width, leftWidth = appearance[(int)OxGUIHelpers.TexturePositioning.Left].width;
-                float centerHeight = appearance[(int)OxGUIHelpers.TexturePositioning.Center].height, topHeight = appearance[(int)OxGUIHelpers.TexturePositioning.Top].height, bottomHeight = appearance[(int)OxGUIHelpers.TexturePositioning.Bottom].height;
+                float centerWidth = appearance[(int)OxGUIHelpers.Alignment.Center].width, rightWidth = appearance[(int)OxGUIHelpers.Alignment.Right].width, leftWidth = appearance[(int)OxGUIHelpers.Alignment.Left].width;
+                float centerHeight = appearance[(int)OxGUIHelpers.Alignment.Center].height, topHeight = appearance[(int)OxGUIHelpers.Alignment.Top].height, bottomHeight = appearance[(int)OxGUIHelpers.Alignment.Bottom].height;
                 float percentWidth = centerWidth / (centerWidth + rightWidth + leftWidth);
                 float percentHeight = centerHeight / (centerHeight + topHeight + bottomHeight);
 
@@ -356,5 +469,11 @@ namespace OxGUI
     internal struct AppearanceOrigInfo
     {
         public float originalWidth, originalHeight, originalSideWidth, percentRight, originalSideHeight, percentTop;
+    }
+
+    internal struct AppearanceInfo
+    {
+        public OxGUIHelpers.ElementState state;
+        public float centerWidth, centerHeight, rightSideWidth, leftSideWidth, topSideHeight, bottomSideHeight;
     }
 }
