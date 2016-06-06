@@ -84,7 +84,7 @@ namespace OxGUI
         {
             if(activeElements.IndexOf(this) == 0)
             {
-                currentAlteration = !currentAlteration;
+                alternator = !alternator;
                 currentIndex = 0;
             }
 
@@ -93,8 +93,9 @@ namespace OxGUI
                 if (activeElements.IndexOf(this) < 0)
                 {
                     activeElements.Insert(currentIndex, this);
-                    currentIndex++;
+                    
                 }
+                currentIndex++;
                 currentAlteration = alternator;
             }
             else
@@ -283,8 +284,8 @@ namespace OxGUI
 
         private void InteractionSystem()
         {
-            if (currentIndex == 0)
-            {
+            //if (currentIndex == 1)
+            //{
                 Vector2 mousePosition = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
                 for (int i = activeElements.Count - 1; i >= 0; i--)
                 {
@@ -324,7 +325,7 @@ namespace OxGUI
                 currentlyHighlighted = null;
                 currentlyPressed = null;
                 prevMousePosition = mousePosition;
-            }
+            //}
         }
         #endregion
 

@@ -6,7 +6,7 @@ namespace OxGUI
     public abstract class OxContainer : OxBase, OxContainable
     {
         protected List<OxBase> items = new List<OxBase>();
-        protected OxButton[] containerButtons = new OxButton[9];
+        private OxButton[] containerButtons = new OxButton[9];
 
         public OxContainer(int x, int y, int width, int height) : this(new Vector2(x, y), new Vector2(width, height)) { }
         public OxContainer(Vector2 position, Vector2 size) : base(position, size)
@@ -57,6 +57,10 @@ namespace OxGUI
                     containerButtons[((row * 3) + col)].Draw();
                 }
             }
+        }
+        internal void SetContainerButtonFunction(OxGUIHelpers.Alignment buttonPosition, OxGUIHelpers.ElementType function)
+        {
+            containerButtons[((int)buttonPosition)].elementFunction = OxGUIHelpers.ElementType.None;
         }
         #endregion
 

@@ -4,6 +4,7 @@ namespace OxGUI
 {
     public class OxScrollbar : OxBase
     {
+        public OxScrollbar() : this(Vector2.zero, Vector2.zero) { }
         public OxScrollbar(int x, int y, int width, int height) : this(new Vector2(x, y), new Vector2(width, height)) { }
         public OxScrollbar(Vector2 position, Vector2 size) : base(position, size)
         {

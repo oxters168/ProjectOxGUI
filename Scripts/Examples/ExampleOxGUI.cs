@@ -32,7 +32,7 @@ public class ExampleOxGUI : MonoBehaviour
         int menuWidth = 150, menuHeight = 300, menuX = (Screen.width / 2) - (menuWidth / 2), menuY = (Screen.height / 2) - (menuHeight / 2);
         menu = new OxMenu(new Vector2(menuX, menuY), new Vector2(menuWidth, menuHeight));
         TextureGrey(menu);
-        for(int i = 0; i < 5; i++)
+        for(int i = 0; i < 10; i++)
         {
             OxButton menuButton = new OxButton();
             TextureBlue(menuButton);
