@@ -32,7 +32,7 @@ namespace OxGUI
             #region Add Scrollbar
             if(items.Count > itemsShown)
             {
-                scrollDistance = (items.Count - itemsShown) * (scrollbar.progress / 100);
+                scrollDistance = (items.Count - itemsShown) * scrollbar.progress;
                 #region Scrollbar
                 float scrollbarXPos = x + dimensions.leftSideWidth, scrollbarYPos = y + dimensions.topSideHeight, scrollbarWidth = dimensions.centerWidth * scrollbarPercentSpaceTaken, scrollbarHeight = dimensions.centerHeight;
                 scrollbar.horizontal = horizontal;

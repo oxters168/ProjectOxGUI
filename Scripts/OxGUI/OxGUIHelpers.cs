@@ -24,5 +24,10 @@ namespace OxGUI
         public delegate void MouseUpHandler(object obj, MouseButton button);
         public delegate void MouseOverHandler(object obj);
         public delegate void MouseLeaveHandler(object obj);
+
+        public static float TruncateTo(float original, int decimalPlaces)
+        {
+            return ((int)(original * Mathf.Pow(10, decimalPlaces))) / Mathf.Pow(10, decimalPlaces);
+        }
     }
 }

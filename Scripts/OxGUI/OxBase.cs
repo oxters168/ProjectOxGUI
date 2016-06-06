@@ -38,6 +38,7 @@ namespace OxGUI
         public Vector2 size { get { return new Vector2(width, height); } set { Resize(value); } }
 
         #region Text Variables
+        public const int MAX_FONT_SIZE = 256, MIN_FONT_SIZE = 8;
         public string text = "";
         public Color textColor = Color.black;
         public OxGUIHelpers.Alignment textPosition = OxGUIHelpers.Alignment.Center;
@@ -145,7 +146,8 @@ namespace OxGUI
 
                 #region Text
                 GUIStyle textStyle = new GUIStyle();
-                textStyle.fontSize = textSize;
+                if (autoSizeText) textStyle.fontSize = CalculateFontSize(dimensions.centerHeight);
+                else textStyle.fontSize = textSize;
                 textStyle.normal.textColor = textColor;
                 textStyle.alignment = ((TextAnchor)textAlignment);
                 textStyle.clipping = TextClipping.Clip;
@@ -204,7 +206,6 @@ namespace OxGUI
             }
             return availableState;
         }
-
         internal AppearanceInfo CurrentAppearanceInfo()
         {
             AppearanceInfo appearanceInfo = new AppearanceInfo();
@@ -217,7 +218,26 @@ namespace OxGUI
             appearanceInfo.bottomSideHeight = (height - appearanceInfo.centerHeight) * (1 - origInfo[((int)appearanceInfo.state)].percentTop);
             return appearanceInfo;
         }
+        public static int CalculateFontSize(float elementHeight)
+        {
+            string testString = "Q";
+            int calculatedSize = MIN_FONT_SIZE + 1;
+            GUIStyle emptyStyle = new GUIStyle();
+            emptyStyle.fontSize = calculatedSize;
+            float pixelHeight = emptyStyle.CalcSize(new GUIContent(testString)).y;
+            while (pixelHeight < elementHeight)
+            {
+                calculatedSize++;
+                emptyStyle.fontSize = calculatedSize;
+                pixelHeight = emptyStyle.CalcSize(new GUIContent(testString)).y;
+                if (calculatedSize > MAX_FONT_SIZE) { break; }
+            }
+            calculatedSize--;
 
+            return calculatedSize;
+        }
+
+        #region Common Textures
         protected void BlueButtonTexture(OxBase element)
         {
             element.AddAppearance(OxGUIHelpers.ElementState.Normal, new Texture2D[] {
@@ -270,6 +290,7 @@ namespace OxGUI
             Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayBottomRight")
             });
         }
+        #endregion
 
         #region User Interactibality
         private static List<OxBase> activeElements = new List<OxBase>();
@@ -284,8 +305,8 @@ namespace OxGUI
 
         private void InteractionSystem()
         {
-            //if (currentIndex == 1)
-            //{
+            if (currentIndex == 1)
+            {
                 Vector2 mousePosition = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
                 for (int i = activeElements.Count - 1; i >= 0; i--)
                 {
@@ -310,7 +331,9 @@ namespace OxGUI
                         }
 
                         if (element.mouseIsOver) currentlyHighlighted = element;
+                        //else if (!element.mouseIsOver && currentlyHighlighted == element) currentlyHighlighted = null;
                         if (element.mouseIsDown) currentlyPressed = element;
+                        else if (!element.mouseIsDown && currentlyPressed == element) currentlyPressed = null;
 
                         if (Vector2.Distance(prevMousePosition, mousePosition) > 0)
                         {
@@ -323,9 +346,9 @@ namespace OxGUI
                     }
                 }
                 currentlyHighlighted = null;
-                currentlyPressed = null;
+                //currentlyPressed = null;
                 prevMousePosition = mousePosition;
-            //}
+            }
         }
         #endregion
 
