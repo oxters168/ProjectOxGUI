@@ -4,9 +4,11 @@ using OxGUI;
 public class ExampleOxGUI : MonoBehaviour
 {
     OxPanel panel;
+    OxTextbox textbox;
     OxMenu menu;
     OxButton button;
     OxScrollbar scrollbar;
+    public bool textbox_top, textbox_bottom, textbox_left, textbox_right;
     public bool menu_top, menu_bottom, menu_left, menu_right;
     public bool button_top, button_bottom, button_left, button_right;
     public bool scrollbar_top, scrollbar_bottom, scrollbar_left, scrollbar_right;
@@ -14,6 +16,7 @@ public class ExampleOxGUI : MonoBehaviour
     void Start()
     {
         InitializePanel();
+        InitializeTextbox();
         InitializeMenu();
         InitializeButton();
         InitializeScrollbar();
@@ -22,20 +25,41 @@ public class ExampleOxGUI : MonoBehaviour
     void OnGUI ()
     {
         SetMenuAnchor();
+        SetTextboxAnchor();
         SetButtonAnchor();
         SetScrollbarAnchor();
         panel.Draw();
     }
 
+    private void InitializeTextbox()
+    {
+        int textboxWidth = 100, textboxHeight = 48, textboxX = (Screen.width / 2) - (textboxWidth / 2), textboxY = (Screen.height / 2) - (textboxHeight / 2) - 150;
+        textbox = new OxTextbox(new Vector2(textboxX, textboxY), new Vector2(textboxWidth, textboxHeight));
+        textbox.text = "Hello";
+        OxBase.ApplyAppearanceFromResources(textbox, "Textures/Checkbox", true, true, false);
+        panel.AddItem(textbox);
+    }
+    private void SetTextboxAnchor()
+    {
+        if (textbox_top) textbox.anchor |= OxGUIHelpers.Anchor.Top;
+        else textbox.anchor &= ~OxGUIHelpers.Anchor.Top;
+        if (textbox_bottom) textbox.anchor |= OxGUIHelpers.Anchor.Bottom;
+        else textbox.anchor &= ~OxGUIHelpers.Anchor.Bottom;
+        if (textbox_left) textbox.anchor |= OxGUIHelpers.Anchor.Left;
+        else textbox.anchor &= ~OxGUIHelpers.Anchor.Left;
+        if (textbox_right) textbox.anchor |= OxGUIHelpers.Anchor.Right;
+        else textbox.anchor &= ~OxGUIHelpers.Anchor.Right;
+    }
+
     private void InitializeMenu()
     {
-        int menuWidth = 150, menuHeight = 300, menuX = (Screen.width / 2) - (menuWidth / 2), menuY = (Screen.height / 2) - (menuHeight / 2);
+        int menuWidth = 150, menuHeight = 250, menuX = (Screen.width / 2) - (menuWidth / 2), menuY = (Screen.height / 2) - (menuHeight / 2);
         menu = new OxMenu(new Vector2(menuX, menuY), new Vector2(menuWidth, menuHeight));
-        TextureGrey(menu);
-        for(int i = 0; i < 10; i++)
+        OxBase.ApplyAppearanceFromResources(menu, "Textures/GreyPanel");
+        for(int i = 0; i < 25; i++)
         {
             OxButton menuButton = new OxButton();
-            TextureBlue(menuButton);
+            OxBase.ApplyAppearanceFromResources(menuButton, "Textures/BlueButton");
             menuButton.text = (i + 1).ToString();
             menu.AddItem(menuButton);
         }
@@ -58,7 +82,7 @@ public class ExampleOxGUI : MonoBehaviour
         int buttonWidth = 48, buttonHeight = 48, buttonX = (Screen.width / 2) - (buttonWidth / 2), buttonY = (Screen.height / 2) - (buttonHeight / 2) - 200;
         button = new OxButton(new Vector2(buttonX, buttonY), new Vector2(buttonWidth, buttonHeight));
         button.text = "Hello";
-        TextureBlue(button);
+        OxBase.ApplyAppearanceFromResources(button, "Textures/BlueButton");
         panel.AddItem(button);
     }
     private void SetButtonAnchor()
@@ -95,11 +119,10 @@ public class ExampleOxGUI : MonoBehaviour
     {
         int panelWidth = 300, panelHeight = 500, panelX = (Screen.width / 2) - (panelWidth / 2), panelY = (Screen.height / 2) - (panelHeight / 2);
         panel = new OxPanel(new Vector2(panelX, panelY), new Vector2(panelWidth, panelHeight));
-        //panel.AddItem(menu, button, scrollbar);
-        TextureGrey(panel);
+        OxBase.ApplyAppearanceFromResources(panel, "Textures/GreyPanel");
     }
 
-    private void TextureBlue(OxBase element)
+    /*private void TextureBlue(OxBase element)
     {
         element.AddAppearance(OxGUIHelpers.ElementState.Normal, new Texture2D[] {
             Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueTopLeft"),
@@ -150,5 +173,5 @@ public class ExampleOxGUI : MonoBehaviour
             Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayBottom"),
             Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayBottomRight")
         });
-    }
+    }*/
 }

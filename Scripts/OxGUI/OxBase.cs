@@ -44,7 +44,7 @@ namespace OxGUI
         public OxGUIHelpers.Alignment textPosition = OxGUIHelpers.Alignment.Center;
         public OxGUIHelpers.Alignment textAlignment = OxGUIHelpers.Alignment.Center;
         public int textSize = 12;
-        public bool autoSizeText = true;
+        public bool autoSizeText = false;
         #endregion
 
         #region Texture Variables
@@ -81,6 +81,7 @@ namespace OxGUI
         private static int currentIndex = 0;
         private static bool alternator = false;
         private bool currentAlteration = false;
+        //private string prevNumElements = "";
         private void ManageActiveElements()
         {
             if(activeElements.IndexOf(this) == 0)
@@ -115,66 +116,75 @@ namespace OxGUI
                     currentIndex--;
                 }
             }
+            //string currentNumElements = activeElements.Count + " Elements";
+            //if(!currentNumElements.Equals(prevNumElements)) Debug.Log(currentNumElements);
+            //prevNumElements = currentNumElements;
         }
         protected virtual void Paint()
         {
             if (visible)
             {
-                AppearanceInfo dimensions = CurrentAppearanceInfo();
-                Texture2D currentTexture = null;
-
-                UpdateNonPixeliness(((int)dimensions.state));
-
-                float xPos = x, yPos = y, drawWidth = dimensions.leftSideWidth, drawHeight = dimensions.topSideHeight;
-
-                #region Textures
-                for (int row = 0; row < 3; row++)
-                {
-                    for (int col = 0; col < 3; col++)
-                    {
-                        xPos = x; yPos = y; drawWidth = dimensions.leftSideWidth; drawHeight = dimensions.topSideHeight;
-                        if (col > 0) { xPos += dimensions.leftSideWidth; drawWidth = dimensions.centerWidth; }
-                        if (col > 1) { xPos += dimensions.centerWidth; drawWidth = dimensions.rightSideWidth; }
-                        if (row > 0) { yPos += dimensions.topSideHeight; drawHeight = dimensions.centerHeight; }
-                        if (row > 1) { yPos += dimensions.centerHeight; drawHeight = dimensions.bottomSideHeight; }
-
-                        currentTexture = appearances[((int)dimensions.state), ((row * 3) + col)];
-                        if (currentTexture != null) GUI.DrawTexture(new Rect(xPos, yPos, drawWidth, drawHeight), currentTexture);
-                    }
-                }
-                #endregion
-
-                #region Text
-                GUIStyle textStyle = new GUIStyle();
-                if (autoSizeText) textStyle.fontSize = CalculateFontSize(dimensions.centerHeight);
-                else textStyle.fontSize = textSize;
-                textStyle.normal.textColor = textColor;
-                textStyle.alignment = ((TextAnchor)textAlignment);
-                textStyle.clipping = TextClipping.Clip;
-                xPos = x; yPos = y; drawWidth = dimensions.leftSideWidth; drawHeight = dimensions.topSideHeight;
-                if (textPosition == OxGUIHelpers.Alignment.Top || textPosition == OxGUIHelpers.Alignment.Center || textPosition == OxGUIHelpers.Alignment.Bottom)
-                {
-                    xPos += dimensions.leftSideWidth;
-                    drawWidth = dimensions.centerWidth;
-                }
-                else if (textPosition == OxGUIHelpers.Alignment.Top_Right || textPosition == OxGUIHelpers.Alignment.Right || textPosition == OxGUIHelpers.Alignment.Bottom_Right)
-                {
-                    xPos += dimensions.leftSideWidth + dimensions.centerWidth;
-                    drawWidth = dimensions.rightSideWidth;
-                }
-                if (textPosition == OxGUIHelpers.Alignment.Left || textPosition == OxGUIHelpers.Alignment.Center || textPosition == OxGUIHelpers.Alignment.Right)
-                {
-                    yPos += dimensions.topSideHeight;
-                    drawHeight = dimensions.centerHeight;
-                }
-                else if (textPosition == OxGUIHelpers.Alignment.Bottom_Left || textPosition == OxGUIHelpers.Alignment.Bottom || textPosition == OxGUIHelpers.Alignment.Bottom_Right)
-                {
-                    yPos += dimensions.topSideHeight + dimensions.centerHeight;
-                    drawHeight = dimensions.bottomSideHeight;
-                }
-                GUI.Label(new Rect(xPos, yPos, drawWidth, drawHeight), text, textStyle);
-                #endregion
+                TexturePaint();
+                TextPaint();
             }
+        }
+        protected virtual void TexturePaint()
+        {
+            AppearanceInfo dimensions = CurrentAppearanceInfo();
+            Texture2D currentTexture = null;
+
+            UpdateNonPixeliness(((int)dimensions.state));
+
+            float xPos = x, yPos = y, drawWidth = dimensions.leftSideWidth, drawHeight = dimensions.topSideHeight;
+
+            for (int row = 0; row < 3; row++)
+            {
+                for (int col = 0; col < 3; col++)
+                {
+                    xPos = x; yPos = y; drawWidth = dimensions.leftSideWidth; drawHeight = dimensions.topSideHeight;
+                    if (col > 0) { xPos += dimensions.leftSideWidth; drawWidth = dimensions.centerWidth; }
+                    if (col > 1) { xPos += dimensions.centerWidth; drawWidth = dimensions.rightSideWidth; }
+                    if (row > 0) { yPos += dimensions.topSideHeight; drawHeight = dimensions.centerHeight; }
+                    if (row > 1) { yPos += dimensions.centerHeight; drawHeight = dimensions.bottomSideHeight; }
+
+                    currentTexture = appearances[((int)dimensions.state), ((row * 3) + col)];
+                    if (currentTexture != null) GUI.DrawTexture(new Rect(xPos, yPos, drawWidth, drawHeight), currentTexture);
+                }
+            }
+        }
+        protected virtual void TextPaint()
+        {
+            AppearanceInfo dimensions = CurrentAppearanceInfo();
+            float xPos = x, yPos = y, drawWidth = dimensions.leftSideWidth, drawHeight = dimensions.topSideHeight;
+            
+            GUIStyle textStyle = new GUIStyle();
+            if (autoSizeText) textStyle.fontSize = CalculateFontSize(dimensions.centerHeight);
+            else textStyle.fontSize = textSize;
+            textStyle.normal.textColor = textColor;
+            textStyle.alignment = ((TextAnchor)textAlignment);
+            textStyle.clipping = TextClipping.Clip;
+            xPos = x; yPos = y; drawWidth = dimensions.leftSideWidth; drawHeight = dimensions.topSideHeight;
+            if (textPosition == OxGUIHelpers.Alignment.Top || textPosition == OxGUIHelpers.Alignment.Center || textPosition == OxGUIHelpers.Alignment.Bottom)
+            {
+                xPos += dimensions.leftSideWidth;
+                drawWidth = dimensions.centerWidth;
+            }
+            else if (textPosition == OxGUIHelpers.Alignment.Top_Right || textPosition == OxGUIHelpers.Alignment.Right || textPosition == OxGUIHelpers.Alignment.Bottom_Right)
+            {
+                xPos += dimensions.leftSideWidth + dimensions.centerWidth;
+                drawWidth = dimensions.rightSideWidth;
+            }
+            if (textPosition == OxGUIHelpers.Alignment.Left || textPosition == OxGUIHelpers.Alignment.Center || textPosition == OxGUIHelpers.Alignment.Right)
+            {
+                yPos += dimensions.topSideHeight;
+                drawHeight = dimensions.centerHeight;
+            }
+            else if (textPosition == OxGUIHelpers.Alignment.Bottom_Left || textPosition == OxGUIHelpers.Alignment.Bottom || textPosition == OxGUIHelpers.Alignment.Bottom_Right)
+            {
+                yPos += dimensions.topSideHeight + dimensions.centerHeight;
+                drawHeight = dimensions.bottomSideHeight;
+            }
+            GUI.Label(new Rect(xPos, yPos, drawWidth, drawHeight), text, textStyle);
         }
         private void UpdateNonPixeliness(int availableState)
         {
@@ -238,57 +248,30 @@ namespace OxGUI
         }
 
         #region Common Textures
-        protected void BlueButtonTexture(OxBase element)
+        private static readonly string[] textureLocationTypes = new string[] { "TopLeft", "Top", "TopRight", "Left", "Center", "Right", "BottomLeft", "Bottom", "BottomRight" };
+        public static void ApplyAppearanceFromResources(OxBase element, string location, bool normal = true, bool over = true, bool down = true)
         {
-            element.AddAppearance(OxGUIHelpers.ElementState.Normal, new Texture2D[] {
-            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueTopLeft"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueTop"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueTopRight"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueLeft"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueCenter"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueRight"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueBottomLeft"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueBottom"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Normal/BlueBottomRight")
-        });
+            string adjustedLocation = location.Replace("\\", "/");
+            if (adjustedLocation.LastIndexOf("/") < adjustedLocation.Length - 1) adjustedLocation += "/";
 
-            element.AddAppearance(OxGUIHelpers.ElementState.Highlighted, new Texture2D[] {
-            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueTopLeft"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueTop"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueTopRight"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueLeft"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueCenter"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueRight"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueBottomLeft"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueBottom"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Over/BlueBottomRight")
-        });
+            for(int i = 0; i < 3; i++)
+            {
+                if ((i == 0 && normal) || (i == 1 && over) || (i == 2 && down))
+                {
+                    bool nulled = false;
+                    Texture2D[] loadedTextures = new Texture2D[textureLocationTypes.Length];
+                    for (int j = 0; j < textureLocationTypes.Length; j++)
+                    {
+                        string textureStateType = "Normal/";
+                        if (i == 1) textureStateType = "Over/";
+                        else if (i == 2) textureStateType = "Down/";
 
-            element.AddAppearance(OxGUIHelpers.ElementState.Down, new Texture2D[] {
-            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueTopLeft"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueTop"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueTopRight"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueLeft"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueCenter"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueRight"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueBottomLeft"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueBottom"),
-            Resources.Load<Texture2D>("Textures/BlueButton/Down/BlueBottomRight")
-        });
-        }
-        protected void GreyPanelTexture(OxBase element)
-        {
-            element.AddAppearance(OxGUIHelpers.ElementState.Normal, new Texture2D[] {
-            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayTopLeft"),
-            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayTop"),
-            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayTopRight"),
-            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayLeft"),
-            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayCenter"),
-            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayRight"),
-            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayBottomLeft"),
-            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayBottom"),
-            Resources.Load<Texture2D>("Textures/GrayPanel/Normal/GrayBottomRight")
-            });
+                        loadedTextures[j] = Resources.Load<Texture2D>(adjustedLocation + textureStateType + textureLocationTypes[j]);
+                        if (loadedTextures[j] == null) { Debug.Log("Assets/Resources/" + adjustedLocation + textureStateType + textureLocationTypes[j] + " does not exist"); nulled = true; break; }
+                    }
+                    if (!nulled) element.AddAppearance(((OxGUIHelpers.ElementState)i), loadedTextures);
+                }
+            }
         }
         #endregion
 
