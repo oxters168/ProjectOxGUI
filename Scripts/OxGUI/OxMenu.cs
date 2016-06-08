@@ -13,6 +13,7 @@ namespace OxGUI
         public OxMenu(Vector2 position, Vector2 size) : base(position, size)
         {
             scrollbar = new OxScrollbar();
+            scrollbar.parentInfo = new ParentInfo(this, new Rect(position, size));
             UndefineContainerButtons();
         }
 
@@ -26,7 +27,9 @@ namespace OxGUI
         protected override void DrawContainedItems()
         {
             AppearanceInfo dimensions = CurrentAppearanceInfo();
-            float xPos = x + dimensions.leftSideWidth, yPos = y + dimensions.topSideHeight, drawWidth = dimensions.centerWidth, drawHeight = dimensions.centerHeight;
+            Rect group = new Rect(x + dimensions.leftSideWidth, y + dimensions.topSideHeight, dimensions.centerWidth, dimensions.centerHeight);
+            GUI.BeginGroup(group);
+            float xPos = 0, yPos = 0, drawWidth = dimensions.centerWidth, drawHeight = dimensions.centerHeight;
             float scrollProgress = 0;
 
             #region Add Scrollbar
@@ -34,7 +37,7 @@ namespace OxGUI
             {
                 scrollProgress = (items.Count - itemsShown) * scrollbar.progress;
                 #region Scrollbar
-                float scrollbarXPos = x + dimensions.leftSideWidth, scrollbarYPos = y + dimensions.topSideHeight, scrollbarWidth = dimensions.centerWidth * scrollbarPercentSpaceTaken, scrollbarHeight = dimensions.centerHeight;
+                float scrollbarXPos = 0, scrollbarYPos = 0, scrollbarWidth = dimensions.centerWidth * scrollbarPercentSpaceTaken, scrollbarHeight = dimensions.centerHeight;
                 scrollbar.horizontal = horizontal;
                 if (horizontal)
                 {
@@ -46,6 +49,7 @@ namespace OxGUI
                 {
                     if(switchScrollbarSide) scrollbarXPos += dimensions.centerWidth - scrollbarWidth;
                 }
+                scrollbar.parentInfo.group = group;
                 scrollbar.x = Mathf.RoundToInt(scrollbarXPos);
                 scrollbar.y = Mathf.RoundToInt(scrollbarYPos);
                 scrollbar.width = Mathf.RoundToInt(scrollbarWidth);
@@ -85,11 +89,12 @@ namespace OxGUI
                 drawHeight = ((drawHeight - (cushion * (itemsShown - 1))) / itemsShown);
             }
 
-            //GUI.BeginGroup(new Rect(xPos, yPos, dimensions.centerWidth, dimensions.centerHeight));
             int index = Mathf.RoundToInt(scrollProgress);
             int firstIndex = index;
             for (int i = 0; i < itemsShown; i++)
             {
+                items[i + index].parentInfo.group = group;
+
                 float specificIndex = scrollProgress - (firstIndex + i);
                 if (horizontal)
                 {
@@ -105,7 +110,7 @@ namespace OxGUI
                 items[i + index].height = Mathf.RoundToInt(drawHeight);
                 items[i + index].Draw();
             }
-            //GUI.EndGroup();
+            GUI.EndGroup();
         }
     }
 }

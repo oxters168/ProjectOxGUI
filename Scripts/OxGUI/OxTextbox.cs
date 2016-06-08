@@ -8,7 +8,7 @@ namespace OxGUI
 
         public OxTextbox(Vector2 position, Vector2 size) : base(position, size) { }
 
-        protected override void TextPaint()
+        internal override void TextPaint()
         {
             AppearanceInfo dimensions = CurrentAppearanceInfo();
             GUIStyle textStyle = new GUIStyle();

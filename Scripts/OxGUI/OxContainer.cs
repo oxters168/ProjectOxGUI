@@ -67,11 +67,15 @@ namespace OxGUI
         #region Contained Items
         protected virtual void DrawContainedItems()
         {
+            AppearanceInfo dimensions = CurrentAppearanceInfo();
+            Rect group = new Rect(x + dimensions.leftSideWidth, y + dimensions.topSideHeight, dimensions.centerWidth, dimensions.centerHeight);
+            GUI.BeginGroup(group);
             foreach (OxBase item in items)
             {
-                if (item.x > x && item.x + (item.width) < x + (width) && item.y > y && item.y + (item.height) < y + (height))
-                    item.Draw();
+                item.parentInfo.group = group;
+                item.Draw();
             }
+            GUI.EndGroup();
         }
         protected virtual void ResizeContainedItems(Vector2 delta)
         {
@@ -132,10 +136,20 @@ namespace OxGUI
         #region Interface
         public void AddItem(params OxBase[] addedItems)
         {
+            AppearanceInfo dimensions = CurrentAppearanceInfo();
+            Rect group = new Rect(x + dimensions.leftSideWidth, y + dimensions.topSideHeight, dimensions.centerWidth, dimensions.centerHeight);
             foreach (OxBase item in addedItems)
             {
-                if (item != null) items.Add(item);
-                else throw new System.ArgumentNullException();
+                if (item != null)
+                {
+                    item.parentInfo = new ParentInfo(this, group);
+                    //Debug.Log("Before: " + item.position + " Group: " + group);
+                    item.absoluteX = item.x;
+                    item.absoluteY = item.y;
+                    //Debug.Log("After: " + item.position + " Group: " + group);
+                    items.Add(item);
+                }
+                //else throw new System.ArgumentNullException();
             }
         }
         public bool RemoveItem(params OxBase[] removedItems)
@@ -147,6 +161,9 @@ namespace OxGUI
                 {
                     if (items.IndexOf(item) > -1)
                     {
+                        item.x = Mathf.RoundToInt(item.x + item.parentInfo.group.x);
+                        item.y = Mathf.RoundToInt(item.y + item.parentInfo.group.y);
+                        item.parentInfo = null;
                         bool removedCurrent = items.Remove(item);
                         if (!removedCurrent) allRemoved = false;
                     }
@@ -173,7 +190,7 @@ namespace OxGUI
         }
         private void OxPanel_moved(object obj, Vector2 delta)
         {
-            MoveContainedItems(delta);
+            //MoveContainedItems(delta);
         }
         private void ContainerButton_dragged(object obj, Vector2 delta)
         {

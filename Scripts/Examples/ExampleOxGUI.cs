@@ -7,10 +7,12 @@ public class ExampleOxGUI : MonoBehaviour
     OxTextbox textbox;
     OxMenu menu;
     OxButton button;
+    OxCheckbox checkbox;
     OxScrollbar scrollbar;
     public bool textbox_top, textbox_bottom, textbox_left, textbox_right;
     public bool menu_top, menu_bottom, menu_left, menu_right;
     public bool button_top, button_bottom, button_left, button_right;
+    public bool checkbox_top, checkbox_bottom, checkbox_left, checkbox_right;
     public bool scrollbar_top, scrollbar_bottom, scrollbar_left, scrollbar_right;
 
     void Start()
@@ -19,6 +21,7 @@ public class ExampleOxGUI : MonoBehaviour
         InitializeTextbox();
         InitializeMenu();
         InitializeButton();
+        InitializeCheckbox();
         InitializeScrollbar();
     }
 
@@ -27,6 +30,7 @@ public class ExampleOxGUI : MonoBehaviour
         SetMenuAnchor();
         SetTextboxAnchor();
         SetButtonAnchor();
+        SetCheckboxAnchor();
         SetScrollbarAnchor();
         panel.Draw();
     }
@@ -95,6 +99,26 @@ public class ExampleOxGUI : MonoBehaviour
         else button.anchor &= ~OxGUIHelpers.Anchor.Left;
         if (button_right) button.anchor |= OxGUIHelpers.Anchor.Right;
         else button.anchor &= ~OxGUIHelpers.Anchor.Right;
+    }
+
+    private void InitializeCheckbox()
+    {
+        int checkboxWidth = 150, checkboxHeight = 48, checkboxX = (Screen.width / 2) - (checkboxWidth / 2), checkboxY = (Screen.height / 2) - (checkboxHeight / 2) + 150;
+        checkbox = new OxCheckbox(new Vector2(checkboxX, checkboxY), new Vector2(checkboxWidth, checkboxHeight));
+        OxBase.ApplyAppearanceFromResources(checkbox, "Textures/GreyPanel/");
+        checkbox.text = "Toggle";
+        panel.AddItem(checkbox);
+    }
+    private void SetCheckboxAnchor()
+    {
+        if (checkbox_top) checkbox.anchor |= OxGUIHelpers.Anchor.Top;
+        else checkbox.anchor &= ~OxGUIHelpers.Anchor.Top;
+        if (checkbox_bottom) checkbox.anchor |= OxGUIHelpers.Anchor.Bottom;
+        else checkbox.anchor &= ~OxGUIHelpers.Anchor.Bottom;
+        if (checkbox_left) checkbox.anchor |= OxGUIHelpers.Anchor.Left;
+        else checkbox.anchor &= ~OxGUIHelpers.Anchor.Left;
+        if (checkbox_right) checkbox.anchor |= OxGUIHelpers.Anchor.Right;
+        else checkbox.anchor &= ~OxGUIHelpers.Anchor.Right;
     }
 
     private void InitializeScrollbar()

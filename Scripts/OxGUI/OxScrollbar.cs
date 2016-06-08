@@ -15,6 +15,7 @@ namespace OxGUI
         {
             ApplyAppearanceFromResources(this, "Textures/GreyPanel");
             scrubButton = new OxButton();
+            scrubButton.parentInfo = new ParentInfo(this);
             scrubButton.dragged += ScrubButton_dragged;
             ApplyAppearanceFromResources(scrubButton, "Textures/BlueButton");
         }
@@ -27,24 +28,28 @@ namespace OxGUI
         private void DrawScrub()
         {
             AppearanceInfo dimensions = CurrentAppearanceInfo();
-            float xPos = x + dimensions.leftSideWidth, yPos = y + dimensions.topSideHeight, drawWidth = dimensions.centerWidth, drawHeight = dimensions.centerHeight;
+            Rect group = new Rect(x + dimensions.leftSideWidth, y + dimensions.topSideHeight, dimensions.centerWidth, dimensions.centerHeight);
+            GUI.BeginGroup(group);
+            float xPos = 0, yPos = 0, drawWidth = dimensions.centerWidth, drawHeight = dimensions.centerHeight;
             float progressToPixelDistance = progress;
 
             if (horizontal) { drawWidth *= scrubPercentSize; progressToPixelDistance *= (dimensions.centerWidth - drawWidth); xPos += progressToPixelDistance; }
             else { drawHeight *= scrubPercentSize; progressToPixelDistance *= (dimensions.centerHeight - drawHeight); yPos += progressToPixelDistance; }
+            scrubButton.parentInfo.group = group;
             scrubButton.x = Mathf.RoundToInt(xPos);
             scrubButton.y = Mathf.RoundToInt(yPos);
             scrubButton.width = Mathf.RoundToInt(drawWidth);
             scrubButton.height = Mathf.RoundToInt(drawHeight);
-            scrubButton.text = progress.ToString();
+            //scrubButton.text = progress.ToString();
             scrubButton.Draw();
+            GUI.EndGroup();
         }
 
         private void ScrubButton_dragged(object obj, Vector2 delta)
         {
             AppearanceInfo dimensions = CurrentAppearanceInfo();
-            float scrubPosition = scrubButton.x - (x + dimensions.leftSideWidth), scrubSize = scrubButton.width, barSize = dimensions.centerWidth, changeInProgress = delta.x;
-            if (!horizontal) { scrubPosition = scrubButton.y - (y + dimensions.topSideHeight); scrubSize = scrubButton.height; barSize = dimensions.centerHeight; changeInProgress = delta.y; }
+            float scrubPosition = scrubButton.x, scrubSize = scrubButton.width, barSize = dimensions.centerWidth, changeInProgress = delta.x;
+            if (!horizontal) { scrubPosition = scrubButton.y; scrubSize = scrubButton.height; barSize = dimensions.centerHeight; changeInProgress = delta.y; }
 
             if (scrubPosition + changeInProgress < 0) progress = 0;
             else if (scrubPosition + changeInProgress > barSize - scrubSize) progress = 1;

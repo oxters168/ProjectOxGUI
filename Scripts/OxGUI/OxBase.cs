@@ -13,11 +13,13 @@ namespace OxGUI
         /// want to fire the repositioned event.
         /// </summary>
         public int x { get; internal set; }
+        public int absoluteX { get { float addedParentX = 0; ParentInfo pi = parentInfo; while (pi != null) { addedParentX += pi.group.x; pi = pi.parent.parentInfo; } return x + Mathf.RoundToInt(addedParentX); } internal set { x = (parentInfo != null ? Mathf.RoundToInt(value - parentInfo.group.x) : value); } }
         /// <summary>
         /// Can only be set within the same namespace, but only set if you don't
         /// want to fire the repositioned event.
         /// </summary>
         public int y { get; internal set; }
+        public int absoluteY { get { float addedParentY = 0; ParentInfo pi = parentInfo; while (pi != null) { addedParentY += pi.group.y; pi = pi.parent.parentInfo; } return y + Mathf.RoundToInt(addedParentY); } internal set { y = (parentInfo != null ? Mathf.RoundToInt(value - parentInfo.group.y) : value); } }
         /// <summary>
         /// Can only be set within the same namespace, but only set if you don't
         /// want to fire the resized event.
@@ -48,9 +50,10 @@ namespace OxGUI
         #endregion
 
         #region Texture Variables
+        internal ParentInfo parentInfo = null;
         protected Texture2D[,] appearances = new Texture2D[3, 9];
         protected Vector2 centerPercentSize = new Vector2(0.5f, 0.5f);
-        public OxGUIHelpers.ElementState currentState { get; private set; }
+        public OxGUIHelpers.ElementState currentState { get; internal set; }
         public float centerPercentWidth { get { return centerPercentSize.x; } set { if (value >= 0 && value <= 1) centerPercentSize = new Vector2(value, centerPercentSize.y); } }
         public float centerPercentHeight { get { return centerPercentSize.y; } set { if (value >= 0 && value <= 1) centerPercentSize = new Vector2(centerPercentSize.x, value); } }
         internal AppearanceOrigInfo[] origInfo = new AppearanceOrigInfo[3];
@@ -120,7 +123,7 @@ namespace OxGUI
             //if(!currentNumElements.Equals(prevNumElements)) Debug.Log(currentNumElements);
             //prevNumElements = currentNumElements;
         }
-        protected virtual void Paint()
+        internal virtual void Paint()
         {
             if (visible)
             {
@@ -128,7 +131,7 @@ namespace OxGUI
                 TextPaint();
             }
         }
-        protected virtual void TexturePaint()
+        internal virtual void TexturePaint()
         {
             AppearanceInfo dimensions = CurrentAppearanceInfo();
             Texture2D currentTexture = null;
@@ -152,7 +155,7 @@ namespace OxGUI
                 }
             }
         }
-        protected virtual void TextPaint()
+        internal virtual void TextPaint()
         {
             AppearanceInfo dimensions = CurrentAppearanceInfo();
             float xPos = x, yPos = y, drawWidth = dimensions.leftSideWidth, drawHeight = dimensions.topSideHeight;
@@ -296,7 +299,7 @@ namespace OxGUI
                     OxBase element = activeElements[i];
                     if (element != null && element.enabled)
                     {
-                        if (mousePosition.x > (element.x) && mousePosition.x < (element.x + element.width) && mousePosition.y > (element.y) && mousePosition.y < (element.y + element.height))
+                        if (mousePosition.x > (element.absoluteX) && mousePosition.x < (element.absoluteX + element.width) && mousePosition.y > (element.absoluteY) && mousePosition.y < (element.absoluteY + element.height))
                         {
                             if (!element.mouseIsOver && currentlyHighlighted == null) { element.FireMouseOverEvent(); element.mouseIsOver = true; element.Highlight(true); }
                         }
@@ -471,6 +474,18 @@ namespace OxGUI
             if (mouseUp != null) mouseUp(this, OxGUIHelpers.MouseButton.Left_Button);
         }
         #endregion
+    }
+
+    internal class ParentInfo
+    {
+        public ParentInfo(OxBase parent) : this(parent, new Rect()) { }
+        public ParentInfo(OxBase parent, Rect group)
+        {
+            this.parent = parent;
+            this.group = group;
+        }
+        public OxBase parent { get; internal set; }
+        public Rect group { get; internal set; }
     }
 
     internal struct AppearanceOrigInfo
