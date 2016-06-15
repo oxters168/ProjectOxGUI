@@ -5,8 +5,33 @@ namespace OxGUI
 {
     public abstract class OxBase
     {
+        #region Functional Variables
         public bool visible = true;
         public bool enabled = true;
+        public bool isSelected { get; internal set; }
+        public OxGUIHelpers.Anchor anchor;
+        public OxGUIHelpers.ElementType elementFunction;
+        #endregion
+        
+        #region Text Variables
+        public const int MAX_FONT_SIZE = 256, MIN_FONT_SIZE = 8;
+        public string text = "";
+        public Color textColor = Color.black;
+        public OxGUIHelpers.Alignment textPosition = OxGUIHelpers.Alignment.Center;
+        public OxGUIHelpers.Alignment textAlignment = OxGUIHelpers.Alignment.Center;
+        public int textSize = 12;
+        public bool autoSizeText = false;
+        #endregion
+
+        #region Texture Variables
+        internal ParentInfo parentInfo = null;
+        protected Texture2D[,] appearances = new Texture2D[3, 9];
+        protected Vector2 centerPercentSize = new Vector2(0.5f, 0.5f);
+        public OxGUIHelpers.ElementState currentState { get; internal set; }
+        public float centerPercentWidth { get { return centerPercentSize.x; } set { if (value >= 0 && value <= 1) centerPercentSize = new Vector2(value, centerPercentSize.y); } }
+        public float centerPercentHeight { get { return centerPercentSize.y; } set { if (value >= 0 && value <= 1) centerPercentSize = new Vector2(centerPercentSize.x, value); } }
+        internal AppearanceOrigInfo[] origInfo = new AppearanceOrigInfo[3];
+        #endregion
 
         /// <summary>
         /// Can only be set within the same namespace, but only set if you don't
@@ -39,31 +64,6 @@ namespace OxGUI
         /// </summary>
         public Vector2 size { get { return new Vector2(width, height); } set { Resize(value); } }
 
-        #region Text Variables
-        public const int MAX_FONT_SIZE = 256, MIN_FONT_SIZE = 8;
-        public string text = "";
-        public Color textColor = Color.black;
-        public OxGUIHelpers.Alignment textPosition = OxGUIHelpers.Alignment.Center;
-        public OxGUIHelpers.Alignment textAlignment = OxGUIHelpers.Alignment.Center;
-        public int textSize = 12;
-        public bool autoSizeText = false;
-        #endregion
-
-        #region Texture Variables
-        internal ParentInfo parentInfo = null;
-        protected Texture2D[,] appearances = new Texture2D[3, 9];
-        protected Vector2 centerPercentSize = new Vector2(0.5f, 0.5f);
-        public OxGUIHelpers.ElementState currentState { get; internal set; }
-        public float centerPercentWidth { get { return centerPercentSize.x; } set { if (value >= 0 && value <= 1) centerPercentSize = new Vector2(value, centerPercentSize.y); } }
-        public float centerPercentHeight { get { return centerPercentSize.y; } set { if (value >= 0 && value <= 1) centerPercentSize = new Vector2(centerPercentSize.x, value); } }
-        internal AppearanceOrigInfo[] origInfo = new AppearanceOrigInfo[3];
-        #endregion
-
-        #region Other Variables
-        public OxGUIHelpers.Anchor anchor;
-        public OxGUIHelpers.ElementType elementFunction;
-        #endregion
-
         public OxBase(Vector2 position, Vector2 size)
         {
             x = Mathf.RoundToInt(position.x);
@@ -76,9 +76,12 @@ namespace OxGUI
 
         public virtual void Draw()
         {
-            ManageActiveElements();
-            InteractionSystem();
-            Paint();
+            if (visible)
+            {
+                ManageActiveElements();
+                InteractionSystem();
+                Paint();
+            }
         }
 
         private static int currentIndex = 0;
@@ -125,11 +128,8 @@ namespace OxGUI
         }
         internal virtual void Paint()
         {
-            if (visible)
-            {
                 TexturePaint();
                 TextPaint();
-            }
         }
         internal virtual void TexturePaint()
         {
@@ -329,6 +329,8 @@ namespace OxGUI
                                 element.FireDraggedEvent(mousePosition - prevMousePosition);
                             }
                         }
+
+                        if (element.isSelected) element.currentState = OxGUIHelpers.ElementState.Highlighted;
                     }
                 }
                 currentlyHighlighted = null;
@@ -391,6 +393,16 @@ namespace OxGUI
             else currentState = OxGUIHelpers.ElementState.Normal;
             FireReleasedEvent();
         }
+        public virtual void Select(bool onOff)
+        {
+            if (isSelected != onOff)
+            {
+                isSelected = onOff;
+                if (onOff) currentState = OxGUIHelpers.ElementState.Highlighted;
+                else currentState = OxGUIHelpers.ElementState.Normal;
+                FireSelectedEvent(onOff);
+            }
+        }
 
         public void AddAppearance(OxGUIHelpers.ElementState type, Texture2D[] appearance)
         {
@@ -420,6 +432,26 @@ namespace OxGUI
                 origInfo[(int)type].originalSideHeight = topHeight + bottomHeight;
                 origInfo[(int)type].percentTop = topHeight / origInfo[(int)type].originalSideHeight;
             }
+        }
+        public void ClearAppearance(OxGUIHelpers.ElementState type)
+        {
+            for(int i = 0; i < 9; i++)
+            {
+                appearances[((int)type), i] = null;
+            }
+
+            origInfo[(int)type].originalWidth = 0;
+            origInfo[(int)type].originalHeight = 0;
+            origInfo[(int)type].originalSideWidth = 0;
+            origInfo[(int)type].percentRight = 0;
+            origInfo[(int)type].originalSideHeight = 0;
+            origInfo[(int)type].percentTop = 0;
+        }
+        public void ClearAllAppearances()
+        {
+            ClearAppearance(OxGUIHelpers.ElementState.Normal);
+            ClearAppearance(OxGUIHelpers.ElementState.Highlighted);
+            ClearAppearance(OxGUIHelpers.ElementState.Down);
         }
         #endregion
 

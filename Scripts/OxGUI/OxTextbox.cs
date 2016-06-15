@@ -6,7 +6,10 @@ namespace OxGUI
     {
         public bool multiline = false;
 
-        public OxTextbox(Vector2 position, Vector2 size) : base(position, size) { }
+        public OxTextbox(Vector2 position, Vector2 size) : base(position, size)
+        {
+            ApplyAppearanceFromResources(this, "Textures/Checkbox", true, true, false);
+        }
 
         internal override void TextPaint()
         {

@@ -9,9 +9,12 @@ namespace OxGUI
         public int itemsShown = 5;
         public bool horizontal = false, switchScrollbarSide = false;
         public float scrollbarPercentSpaceTaken = 0.2f;
+        public float scrollProgress { get { return scrollbar.progress; } set { if (value >= 0 && value <= 1) scrollbar.progress = value; } }
 
+        public OxMenu() : this(Vector2.zero, Vector2.zero) { }
         public OxMenu(Vector2 position, Vector2 size) : base(position, size)
         {
+            ApplyAppearanceFromResources(this, "Textures/Panel2", true, false, false);
             scrollbar = new OxScrollbar();
             scrollbar.parentInfo = new ParentInfo(this, new Rect(position, size));
             UndefineContainerButtons();
@@ -93,22 +96,25 @@ namespace OxGUI
             int firstIndex = index;
             for (int i = 0; i < itemsShown; i++)
             {
-                items[i + index].parentInfo.group = group;
+                if (i + index < items.Count)
+                {
+                    items[i + index].parentInfo.group = group;
 
-                float specificIndex = scrollProgress - (firstIndex + i);
-                if (horizontal)
-                {
-                    items[i + index].x = Mathf.RoundToInt(xPos - (drawWidth * specificIndex) - (cushion * specificIndex));
-                    items[i + index].y = Mathf.RoundToInt(yPos);
+                    float specificIndex = scrollProgress - (firstIndex + i);
+                    if (horizontal)
+                    {
+                        items[i + index].x = Mathf.RoundToInt(xPos - (drawWidth * specificIndex) - (cushion * specificIndex));
+                        items[i + index].y = Mathf.RoundToInt(yPos);
+                    }
+                    else
+                    {
+                        items[i + index].x = Mathf.RoundToInt(xPos);
+                        items[i + index].y = Mathf.RoundToInt(yPos - (drawHeight * specificIndex) - (cushion * specificIndex));
+                    }
+                    items[i + index].width = Mathf.RoundToInt(drawWidth);
+                    items[i + index].height = Mathf.RoundToInt(drawHeight);
+                    items[i + index].Draw();
                 }
-                else
-                {
-                    items[i + index].x = Mathf.RoundToInt(xPos);
-                    items[i + index].y = Mathf.RoundToInt(yPos - (drawHeight * specificIndex) - (cushion * specificIndex));
-                }
-                items[i + index].width = Mathf.RoundToInt(drawWidth);
-                items[i + index].height = Mathf.RoundToInt(drawHeight);
-                items[i + index].Draw();
             }
             GUI.EndGroup();
         }

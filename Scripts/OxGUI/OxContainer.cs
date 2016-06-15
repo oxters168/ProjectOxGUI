@@ -7,10 +7,16 @@ namespace OxGUI
     {
         protected List<OxBase> items = new List<OxBase>();
         private OxButton[] containerButtons = new OxButton[9];
+        private bool itemSelection;
+        private bool multiSelect;
+        public bool enableItemSelection { get { return itemSelection; } set { multiSelect = false; itemSelection = value; } }
+        public bool enableMultiSelect { get { return multiSelect; } set { if (itemSelection) multiSelect = value; } }
+        protected List<OxBase> selectedItems = new List<OxBase>();
 
         public OxContainer(int x, int y, int width, int height) : this(new Vector2(x, y), new Vector2(width, height)) { }
         public OxContainer(Vector2 position, Vector2 size) : base(position, size)
         {
+            ApplyAppearanceFromResources(this, "Textures/Element2", true, false, false);
             resized += OxPanel_resized;
             moved += OxPanel_moved;
 
@@ -27,9 +33,13 @@ namespace OxGUI
         #region Container Buttons
         private void CreateContainerButtons()
         {
+            //AppearanceInfo dimensions = CurrentAppearanceInfo();
+            Rect group = new Rect(position, size);
             for(int i = 0; i < containerButtons.Length; i++)
             {
                 containerButtons[i] = new OxButton();
+                containerButtons[i].ClearAllAppearances();
+                containerButtons[i].parentInfo = new ParentInfo(this, group);
                 if (i == ((int)OxGUIHelpers.Alignment.Center)) containerButtons[i].elementFunction = OxGUIHelpers.ElementType.Position_Changer;
                 else containerButtons[i].elementFunction = OxGUIHelpers.ElementType.Size_Changer;
                 containerButtons[i].dragged += ContainerButton_dragged;
@@ -38,17 +48,19 @@ namespace OxGUI
         private void DrawContainerButtons()
         {
             AppearanceInfo dimensions = CurrentAppearanceInfo();
-
+            Rect group = new Rect(position, size);
+            GUI.BeginGroup(group);
             for (int row = 0; row < 3; row++)
             {
                 for (int col = 0; col < 3; col++)
                 {
-                    float xPos = x, yPos = y, drawWidth = dimensions.leftSideWidth, drawHeight = dimensions.topSideHeight;
+                    float xPos = 0, yPos = 0, drawWidth = dimensions.leftSideWidth, drawHeight = dimensions.topSideHeight;
                     if (col > 0) { xPos += dimensions.leftSideWidth; drawWidth = dimensions.centerWidth; }
                     if (col > 1) { xPos += dimensions.centerWidth; drawWidth = dimensions.rightSideWidth; }
                     if (row > 0) { yPos += dimensions.topSideHeight; drawHeight = dimensions.centerHeight; }
                     if (row > 1) { yPos += dimensions.centerHeight; drawHeight = dimensions.bottomSideHeight; }
 
+                    containerButtons[((row * 3) + col)].parentInfo.group = group;
                     containerButtons[((row * 3) + col)].x = Mathf.RoundToInt(xPos);
                     containerButtons[((row * 3) + col)].y = Mathf.RoundToInt(yPos);
                     containerButtons[((row * 3) + col)].width = Mathf.RoundToInt(drawWidth);
@@ -57,6 +69,7 @@ namespace OxGUI
                     containerButtons[((row * 3) + col)].Draw();
                 }
             }
+            GUI.EndGroup();
         }
         internal void SetContainerButtonFunction(OxGUIHelpers.Alignment buttonPosition, OxGUIHelpers.ElementType function)
         {
@@ -131,10 +144,14 @@ namespace OxGUI
                 item.position += changeInPosition;
             }
         }
+        public virtual OxBase[] GetSelectedItems()
+        {
+            return selectedItems.ToArray();
+        }
         #endregion
 
         #region Interface
-        public void AddItem(params OxBase[] addedItems)
+        public void AddItems(params OxBase[] addedItems)
         {
             AppearanceInfo dimensions = CurrentAppearanceInfo();
             Rect group = new Rect(x + dimensions.leftSideWidth, y + dimensions.topSideHeight, dimensions.centerWidth, dimensions.centerHeight);
@@ -147,12 +164,13 @@ namespace OxGUI
                     item.absoluteX = item.x;
                     item.absoluteY = item.y;
                     //Debug.Log("After: " + item.position + " Group: " + group);
+                    item.released += MenuItem_released;
                     items.Add(item);
                 }
                 //else throw new System.ArgumentNullException();
             }
         }
-        public bool RemoveItem(params OxBase[] removedItems)
+        public bool RemoveItems(params OxBase[] removedItems)
         {
             bool allRemoved = true;
             foreach (OxBase item in removedItems)
@@ -164,6 +182,8 @@ namespace OxGUI
                         item.x = Mathf.RoundToInt(item.x + item.parentInfo.group.x);
                         item.y = Mathf.RoundToInt(item.y + item.parentInfo.group.y);
                         item.parentInfo = null;
+                        item.released -= MenuItem_released;
+                        selectedItems.Remove(item);
                         bool removedCurrent = items.Remove(item);
                         if (!removedCurrent) allRemoved = false;
                     }
@@ -172,6 +192,11 @@ namespace OxGUI
             }
 
             return allRemoved;
+        }
+        public void ClearItems()
+        {
+            items.Clear();
+            selectedItems.Clear();
         }
         public OxBase[] GetItems()
         {
@@ -245,6 +270,47 @@ namespace OxGUI
                         Reposition(position + delta);
                         Resize(size - delta);
                         MoveContainedItemsReluctantly(delta);
+                    }
+                }
+            }
+        }
+        private void MenuItem_released(object obj)
+        {
+            if (obj != null)
+            {
+                OxBase item = ((OxBase)obj);
+                if (enableMultiSelect)
+                {
+                    if(item.isSelected)
+                    {
+                        selectedItems.Remove(item);
+                    }
+                    else
+                    {
+                        selectedItems.Add(item);
+                    }
+                    item.Select(!item.isSelected);
+                }
+                else
+                {
+                    for (int i = selectedItems.Count - 1; i >= 0; i--)
+                    {
+                        if (selectedItems[i] != item)
+                        {
+                            selectedItems[i].Select(false);
+                            selectedItems.RemoveAt(i);
+                        }
+                    }
+
+                    if (selectedItems.IndexOf(item) > -1)
+                    {
+                        selectedItems.Remove(item);
+                        item.Select(false);
+                    }
+                    else
+                    {
+                        selectedItems.Add(item);
+                        if (enableItemSelection) item.Select(true);
                     }
                 }
             }

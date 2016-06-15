@@ -4,24 +4,58 @@ namespace OxGUI
 {
     public class OxCheckbox : OxBase
     {
-        public bool checkboxChecked = false, switchSide = false;
+        public bool checkboxChecked = false, switchSide = true;
         private OxButton checkbox, check;
+        private OxLabel label;
         
         public OxCheckbox(Vector2 position, Vector2 size) : base(position, size)
         {
+            ApplyAppearanceFromResources(this, "Textures/Panel2", true, false, false);
             highlightedChanged += OxCheckbox_highlightedChanged;
             pressed += OxCheckbox_pressed;
             released += OxCheckbox_released;
             checkbox = new OxButton();
             check = new OxButton();
             ApplyAppearanceFromResources(checkbox, "Textures/Checkbox/");
-            ApplyAppearanceFromResources(check, "Textures/Check");
+            ApplyAppearanceFromResources(check, "Textures/Check", true, false, false);
+            label = new OxLabel();
         }
 
-        public override void Draw()
+        internal override void Paint()
         {
-            base.Draw();
+            base.TexturePaint();
             PaintCheckAndBox();
+            TextPaint();
+        }
+
+        internal override void TextPaint()
+        {
+            AppearanceInfo dimensions = CurrentAppearanceInfo();
+            label.text = text;
+            bool horizontal = dimensions.centerWidth >= dimensions.centerHeight;
+            float checkboxSize = dimensions.centerHeight;
+            if (!horizontal) checkboxSize = dimensions.centerWidth;
+
+            float xPos = x + dimensions.leftSideWidth, yPos = y + dimensions.topSideHeight, drawWidth = dimensions.centerWidth - checkboxSize, drawHeight = dimensions.centerHeight;
+            if(horizontal && !switchSide)
+            {
+                xPos += checkboxSize;
+            }
+            if(!horizontal)
+            {
+                drawWidth = dimensions.centerWidth;
+                drawHeight = dimensions.centerHeight - checkboxSize;
+                if(!switchSide)
+                {
+                    yPos += checkboxSize;
+                }
+            }
+
+            label.x = Mathf.RoundToInt(xPos);
+            label.y = Mathf.RoundToInt(yPos);
+            label.width = Mathf.RoundToInt(drawWidth);
+            label.height = Mathf.RoundToInt(drawHeight);
+            label.Paint();
         }
 
         private void PaintCheckAndBox()

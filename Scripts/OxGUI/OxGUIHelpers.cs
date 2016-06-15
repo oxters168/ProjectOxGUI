@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System;
+using System.IO;
 
 namespace OxGUI
 {
@@ -29,5 +30,44 @@ namespace OxGUI
         {
             return ((int)(original * Mathf.Pow(10, decimalPlaces))) / Mathf.Pow(10, decimalPlaces);
         }
+
+        #region Paths
+        public static string PathConvention(string input)
+        {
+            string output = input.Replace("\\", "/");
+            if (output.LastIndexOf("/") < output.Length - 1) output += "/";
+            return output;
+        }
+        public static string ParentPath(string currentPath)
+        {
+            string parent = "";
+            string currentCorrected = PathConvention(currentPath);
+            int slashes = currentCorrected.Length - currentCorrected.Replace("/", "").Length;
+            if (slashes > 1)
+            {
+                string parentDir = currentCorrected;
+                if (parentDir.LastIndexOf("/") == parentDir.Length - 1) parentDir = parentDir.Substring(0, parentDir.LastIndexOf("/"));
+                if (parentDir.LastIndexOf("/") > -1) parentDir = parentDir.Substring(0, parentDir.LastIndexOf("/") + 1);
+                parent = parentDir;
+            }
+            return parent;
+        }
+        public static string GetLastPartInAbsolutePath(string input)
+        {
+            string output = PathConvention(input);
+            if (output.LastIndexOf("/") == output.Length - 1) output = output.Substring(0, output.Length - 1);
+            if (output.LastIndexOf("/") > -1) output = output.Substring(output.LastIndexOf("/") + 1);
+            return output;
+        }
+        public static bool CanBrowseDirectory(string directory)
+        {
+            try
+            {
+                Directory.GetDirectories(directory);
+            }
+            catch (Exception) { return false; }
+            return true;
+        }
+        #endregion
     }
 }

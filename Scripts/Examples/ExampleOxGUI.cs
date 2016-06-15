@@ -6,11 +6,13 @@ public class ExampleOxGUI : MonoBehaviour
     OxPanel panel;
     OxTextbox textbox;
     OxMenu menu;
+    OxListFileSelector fs;
     OxButton button;
     OxCheckbox checkbox;
     OxScrollbar scrollbar;
     public bool textbox_top, textbox_bottom, textbox_left, textbox_right;
     public bool menu_top, menu_bottom, menu_left, menu_right;
+    public bool fs_top, fs_bottom, fs_left, fs_right;
     public bool button_top, button_bottom, button_left, button_right;
     public bool checkbox_top, checkbox_bottom, checkbox_left, checkbox_right;
     public bool scrollbar_top, scrollbar_bottom, scrollbar_left, scrollbar_right;
@@ -20,6 +22,7 @@ public class ExampleOxGUI : MonoBehaviour
         InitializePanel();
         InitializeTextbox();
         InitializeMenu();
+        InitializeFS();
         InitializeButton();
         InitializeCheckbox();
         InitializeScrollbar();
@@ -28,6 +31,7 @@ public class ExampleOxGUI : MonoBehaviour
     void OnGUI ()
     {
         SetMenuAnchor();
+        SetFSAnchor();
         SetTextboxAnchor();
         SetButtonAnchor();
         SetCheckboxAnchor();
@@ -40,8 +44,8 @@ public class ExampleOxGUI : MonoBehaviour
         int textboxWidth = 100, textboxHeight = 48, textboxX = (Screen.width / 2) - (textboxWidth / 2), textboxY = (Screen.height / 2) - (textboxHeight / 2) - 150;
         textbox = new OxTextbox(new Vector2(textboxX, textboxY), new Vector2(textboxWidth, textboxHeight));
         textbox.text = "Hello";
-        OxBase.ApplyAppearanceFromResources(textbox, "Textures/Checkbox", true, true, false);
-        panel.AddItem(textbox);
+        //OxBase.ApplyAppearanceFromResources(textbox, "Textures/Checkbox", true, true, false);
+        panel.AddItems(textbox);
     }
     private void SetTextboxAnchor()
     {
@@ -57,17 +61,17 @@ public class ExampleOxGUI : MonoBehaviour
 
     private void InitializeMenu()
     {
-        int menuWidth = 150, menuHeight = 250, menuX = (Screen.width / 2) - (menuWidth / 2), menuY = (Screen.height / 2) - (menuHeight / 2);
+        int menuWidth = 75, menuHeight = 250, menuX = (Screen.width / 2) - (menuWidth / 2) - 75, menuY = (Screen.height / 2) - (menuHeight / 2);
         menu = new OxMenu(new Vector2(menuX, menuY), new Vector2(menuWidth, menuHeight));
-        OxBase.ApplyAppearanceFromResources(menu, "Textures/GreyPanel");
+        //OxBase.ApplyAppearanceFromResources(menu, "Textures/Panel2");
         for(int i = 0; i < 25; i++)
         {
             OxButton menuButton = new OxButton();
-            OxBase.ApplyAppearanceFromResources(menuButton, "Textures/BlueButton");
+            //OxBase.ApplyAppearanceFromResources(menuButton, "Textures/Element1");
             menuButton.text = (i + 1).ToString();
-            menu.AddItem(menuButton);
+            menu.AddItems(menuButton);
         }
-        panel.AddItem(menu);
+        panel.AddItems(menu);
     }
     private void SetMenuAnchor()
     {
@@ -81,13 +85,32 @@ public class ExampleOxGUI : MonoBehaviour
         else menu.anchor &= ~OxGUIHelpers.Anchor.Right;
     }
 
+    private void InitializeFS()
+    {
+        int fsWidth = 75, fsHeight = 250, fsX = (Screen.width / 2) - (fsWidth / 2) + 38, fsY = (Screen.height / 2) - (fsHeight / 2);
+        fs = new OxListFileSelector(new Vector2(fsX, fsY), new Vector2(fsWidth, fsHeight));
+        //OxBase.ApplyAppearanceFromResources(fs, "Textures/Panel2");
+        panel.AddItems(fs);
+    }
+    private void SetFSAnchor()
+    {
+        if (fs_top) fs.anchor |= OxGUIHelpers.Anchor.Top;
+        else fs.anchor &= ~OxGUIHelpers.Anchor.Top;
+        if (fs_bottom) fs.anchor |= OxGUIHelpers.Anchor.Bottom;
+        else fs.anchor &= ~OxGUIHelpers.Anchor.Bottom;
+        if (fs_left) fs.anchor |= OxGUIHelpers.Anchor.Left;
+        else fs.anchor &= ~OxGUIHelpers.Anchor.Left;
+        if (fs_right) fs.anchor |= OxGUIHelpers.Anchor.Right;
+        else fs.anchor &= ~OxGUIHelpers.Anchor.Right;
+    }
+
     private void InitializeButton()
     {
         int buttonWidth = 48, buttonHeight = 48, buttonX = (Screen.width / 2) - (buttonWidth / 2), buttonY = (Screen.height / 2) - (buttonHeight / 2) - 200;
         button = new OxButton(new Vector2(buttonX, buttonY), new Vector2(buttonWidth, buttonHeight));
         button.text = "Hello";
-        OxBase.ApplyAppearanceFromResources(button, "Textures/BlueButton");
-        panel.AddItem(button);
+        OxBase.ApplyAppearanceFromResources(button, "Textures/Element1");
+        panel.AddItems(button);
     }
     private void SetButtonAnchor()
     {
@@ -105,9 +128,9 @@ public class ExampleOxGUI : MonoBehaviour
     {
         int checkboxWidth = 150, checkboxHeight = 48, checkboxX = (Screen.width / 2) - (checkboxWidth / 2), checkboxY = (Screen.height / 2) - (checkboxHeight / 2) + 150;
         checkbox = new OxCheckbox(new Vector2(checkboxX, checkboxY), new Vector2(checkboxWidth, checkboxHeight));
-        OxBase.ApplyAppearanceFromResources(checkbox, "Textures/GreyPanel/");
+        //OxBase.ApplyAppearanceFromResources(checkbox, "Textures/Panel2/");
         checkbox.text = "Toggle";
-        panel.AddItem(checkbox);
+        panel.AddItems(checkbox);
     }
     private void SetCheckboxAnchor()
     {
@@ -125,7 +148,7 @@ public class ExampleOxGUI : MonoBehaviour
     {
         int scrollbarWidth = 200, scrollbarHeight = 48, scrollbarX = (Screen.width / 2) - (scrollbarWidth / 2), scrollbarY = (Screen.height / 2) - (scrollbarHeight / 2) + 200;
         scrollbar = new OxScrollbar(new Vector2(scrollbarX, scrollbarY), new Vector2(scrollbarWidth, scrollbarHeight));
-        panel.AddItem(scrollbar);
+        panel.AddItems(scrollbar);
     }
     private void SetScrollbarAnchor()
     {
@@ -143,7 +166,7 @@ public class ExampleOxGUI : MonoBehaviour
     {
         int panelWidth = 300, panelHeight = 500, panelX = (Screen.width / 2) - (panelWidth / 2), panelY = (Screen.height / 2) - (panelHeight / 2);
         panel = new OxPanel(new Vector2(panelX, panelY), new Vector2(panelWidth, panelHeight));
-        OxBase.ApplyAppearanceFromResources(panel, "Textures/GreyPanel");
+        //OxBase.ApplyAppearanceFromResources(panel, "Textures/Element2", true, false, false);
     }
 
     /*private void TextureBlue(OxBase element)

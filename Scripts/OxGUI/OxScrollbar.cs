@@ -13,11 +13,11 @@ namespace OxGUI
         public OxScrollbar(int x, int y, int width, int height) : this(new Vector2(x, y), new Vector2(width, height)) { }
         public OxScrollbar(Vector2 position, Vector2 size) : base(position, size)
         {
-            ApplyAppearanceFromResources(this, "Textures/GreyPanel");
+            ApplyAppearanceFromResources(this, "Textures/Element2", true, false, false);
             scrubButton = new OxButton();
             scrubButton.parentInfo = new ParentInfo(this);
             scrubButton.dragged += ScrubButton_dragged;
-            ApplyAppearanceFromResources(scrubButton, "Textures/BlueButton");
+            //plyAppearanceFromResources(scrubButton, "Textures/Element1");
         }
 
         public override void Draw()
