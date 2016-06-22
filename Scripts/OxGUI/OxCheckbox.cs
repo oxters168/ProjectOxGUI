@@ -7,17 +7,18 @@ namespace OxGUI
         public bool checkboxChecked = false, switchSide = true;
         private OxButton checkbox, check;
         private OxLabel label;
+        public event OxHelpers.CheckboxSwitched checkboxSwitched;
         
         public OxCheckbox(Vector2 position, Vector2 size) : base(position, size)
         {
-            ApplyAppearanceFromResources(this, "Textures/Panel2", true, false, false);
+            ApplyAppearanceFromResources(this, "Textures/OxGUI/Panel2", true, false, false);
             highlightedChanged += OxCheckbox_highlightedChanged;
             pressed += OxCheckbox_pressed;
             released += OxCheckbox_released;
             checkbox = new OxButton();
             check = new OxButton();
-            ApplyAppearanceFromResources(checkbox, "Textures/Checkbox/");
-            ApplyAppearanceFromResources(check, "Textures/Check", true, false, false);
+            ApplyAppearanceFromResources(checkbox, "Textures/OxGUI/Checkbox/");
+            ApplyAppearanceFromResources(check, "Textures/OxGUI/Check", true, false, false);
             label = new OxLabel();
         }
 
@@ -101,21 +102,27 @@ namespace OxGUI
         {
             if(onOff)
             {
-                checkbox.currentState = OxGUIHelpers.ElementState.Highlighted;
+                checkbox.currentState = OxHelpers.ElementState.Highlighted;
             }
             else
             {
-                checkbox.currentState = OxGUIHelpers.ElementState.Normal;
+                checkbox.currentState = OxHelpers.ElementState.Normal;
             }
         }
         private void OxCheckbox_pressed(object obj)
         {
-            checkbox.currentState = OxGUIHelpers.ElementState.Down;
+            checkbox.currentState = OxHelpers.ElementState.Down;
         }
         private void OxCheckbox_released(object obj)
         {
-            checkbox.currentState = OxGUIHelpers.ElementState.Highlighted;
+            checkbox.currentState = OxHelpers.ElementState.Highlighted;
             checkboxChecked = !checkboxChecked;
+            FireCheckboxSwitchedEvent(checkboxChecked);
+        }
+
+        protected void FireCheckboxSwitchedEvent(bool state)
+        {
+            if (checkboxSwitched != null) checkboxSwitched(this, state);
         }
     }
 }

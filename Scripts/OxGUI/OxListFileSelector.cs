@@ -30,7 +30,7 @@ namespace OxGUI
 
         private void PopulateList()
         {
-            currentDirectory = OxGUIHelpers.PathConvention(currentDirectory);
+            currentDirectory = OxHelpers.PathConvention(currentDirectory);
             FindDirectory();
 
             ClearItems();
@@ -73,7 +73,7 @@ namespace OxGUI
             string[] directories = Directory.GetDirectories(currentDirectory);
             foreach (string directory in directories)
             {
-                string shortenedDirectory = OxGUIHelpers.GetLastPartInAbsolutePath(directory);
+                string shortenedDirectory = OxHelpers.GetLastPartInAbsolutePath(directory);
 
                 OxButton dirButton = new OxButton(shortenedDirectory + "/");
                 dirButton.released += DirectoryButton_pressed;
@@ -96,7 +96,7 @@ namespace OxGUI
             else files = Directory.GetFiles(currentDirectory);
             foreach (string file in files)
             {
-                string shortednedFile = OxGUIHelpers.GetLastPartInAbsolutePath(file);
+                string shortednedFile = OxHelpers.GetLastPartInAbsolutePath(file);
                 OxButton fileButton = new OxButton(shortednedFile);
                 //fileButton.released += FileButton_pressed;
                 AddItems(fileButton);
@@ -107,7 +107,7 @@ namespace OxGUI
             string[] drives = Directory.GetLogicalDrives();
             foreach (string drive in drives)
             {
-                OxButton driveButton = new OxButton(OxGUIHelpers.PathConvention(drive));
+                OxButton driveButton = new OxButton(OxHelpers.PathConvention(drive));
                 driveButton.released += DirectoryButton_pressed;
                 AddItems(driveButton);
             }
@@ -115,7 +115,7 @@ namespace OxGUI
 
         private void BackButton_pressed(object obj)
         {
-            currentDirectory = OxGUIHelpers.ParentPath(currentDirectory);
+            currentDirectory = OxHelpers.ParentPath(currentDirectory);
             scrollProgress = savedScroll[savedScroll.Count - 1];
             savedScroll.RemoveAt(savedScroll.Count - 1);
         }
@@ -124,15 +124,11 @@ namespace OxGUI
             if (!directorySelection || ((OxBase)obj).isSelected)
             {
                 string nextDirectory = currentDirectory + ((OxBase)obj).text;
-                if (OxGUIHelpers.CanBrowseDirectory(nextDirectory)) currentDirectory = nextDirectory;
+                if (OxHelpers.CanBrowseDirectory(nextDirectory)) currentDirectory = nextDirectory;
                 savedScroll.Add(scrollProgress);
                 scrollProgress = 0;
             }
         }
-        //private void FileButton_pressed(object obj)
-        //{
-
-        //}
 
         #region Extensions
         /// <summary>

@@ -9,16 +9,16 @@ namespace OxGUI
         public bool visible = true;
         public bool enabled = true;
         public bool isSelected { get; internal set; }
-        public OxGUIHelpers.Anchor anchor;
-        public OxGUIHelpers.ElementType elementFunction;
+        public OxHelpers.Anchor anchor;
+        public OxHelpers.ElementType elementFunction;
         #endregion
         
         #region Text Variables
         public const int MAX_FONT_SIZE = 256, MIN_FONT_SIZE = 8;
         public string text = "";
         public Color textColor = Color.black;
-        public OxGUIHelpers.Alignment textPosition = OxGUIHelpers.Alignment.Center;
-        public OxGUIHelpers.Alignment textAlignment = OxGUIHelpers.Alignment.Center;
+        public OxHelpers.Alignment textPosition = OxHelpers.Alignment.Center;
+        public OxHelpers.Alignment textAlignment = OxHelpers.Alignment.Center;
         public int textSize = 12;
         public bool autoSizeText = false;
         #endregion
@@ -27,7 +27,7 @@ namespace OxGUI
         internal ParentInfo parentInfo = null;
         protected Texture2D[,] appearances = new Texture2D[3, 9];
         protected Vector2 centerPercentSize = new Vector2(0.5f, 0.5f);
-        public OxGUIHelpers.ElementState currentState { get; internal set; }
+        public OxHelpers.ElementState currentState { get; internal set; }
         public float centerPercentWidth { get { return centerPercentSize.x; } set { if (value >= 0 && value <= 1) centerPercentSize = new Vector2(value, centerPercentSize.y); } }
         public float centerPercentHeight { get { return centerPercentSize.y; } set { if (value >= 0 && value <= 1) centerPercentSize = new Vector2(centerPercentSize.x, value); } }
         internal AppearanceOrigInfo[] origInfo = new AppearanceOrigInfo[3];
@@ -38,13 +38,13 @@ namespace OxGUI
         /// want to fire the repositioned event.
         /// </summary>
         public int x { get; internal set; }
-        public int absoluteX { get { float addedParentX = 0; ParentInfo pi = parentInfo; while (pi != null) { addedParentX += pi.group.x; pi = pi.parent.parentInfo; } return x + Mathf.RoundToInt(addedParentX); } internal set { x = (parentInfo != null ? Mathf.RoundToInt(value - parentInfo.group.x) : value); } }
+        public int absoluteX { get { float addedParentX = 0; ParentInfo pi = parentInfo; while (pi != null) { addedParentX += pi.group.x; pi = pi.parent.parentInfo; } return x + Mathf.RoundToInt(addedParentX); } internal set { float addedParentX = 0; ParentInfo pi = parentInfo; while (pi != null) { addedParentX += pi.group.x; pi = pi.parent.parentInfo; } x = Mathf.RoundToInt(value - addedParentX); } }
         /// <summary>
         /// Can only be set within the same namespace, but only set if you don't
         /// want to fire the repositioned event.
         /// </summary>
         public int y { get; internal set; }
-        public int absoluteY { get { float addedParentY = 0; ParentInfo pi = parentInfo; while (pi != null) { addedParentY += pi.group.y; pi = pi.parent.parentInfo; } return y + Mathf.RoundToInt(addedParentY); } internal set { y = (parentInfo != null ? Mathf.RoundToInt(value - parentInfo.group.y) : value); } }
+        public int absoluteY { get { float addedParentY = 0; ParentInfo pi = parentInfo; while (pi != null) { addedParentY += pi.group.y; pi = pi.parent.parentInfo; } return y + Mathf.RoundToInt(addedParentY); } internal set { float addedParentY = 0; ParentInfo pi = parentInfo; while (pi != null) { addedParentY += pi.group.y; pi = pi.parent.parentInfo; } y = Mathf.RoundToInt(value - addedParentY); } }
         /// <summary>
         /// Can only be set within the same namespace, but only set if you don't
         /// want to fire the resized event.
@@ -71,8 +71,6 @@ namespace OxGUI
             width = Mathf.RoundToInt(size.x);
             height = Mathf.RoundToInt(size.y);
         }
-        //public OxBase(int x, int y, int width, int height) : this(new Vector2(x, y), new Vector2(width, height)) { }
-        //public OxBase() : this(new Vector2(0, 0), new Vector2(0, 0)) { }
 
         public virtual void Draw()
         {
@@ -101,7 +99,6 @@ namespace OxGUI
                 if (activeElements.IndexOf(this) < 0)
                 {
                     activeElements.Insert(currentIndex, this);
-                    
                 }
                 currentIndex++;
                 currentAlteration = alternator;
@@ -116,7 +113,7 @@ namespace OxGUI
 
             for(int i = currentIndex - 1; i >= 0; i--)
             {
-                if(activeElements[i] == null || activeElements[i].currentAlteration != alternator)
+                if (activeElements[i] == null || activeElements[i].currentAlteration != alternator)
                 {
                     activeElements.RemoveAt(i);
                     currentIndex--;
@@ -167,29 +164,29 @@ namespace OxGUI
             textStyle.alignment = ((TextAnchor)textAlignment);
             textStyle.clipping = TextClipping.Clip;
             xPos = x; yPos = y; drawWidth = dimensions.leftSideWidth; drawHeight = dimensions.topSideHeight;
-            if (textPosition == OxGUIHelpers.Alignment.Top || textPosition == OxGUIHelpers.Alignment.Center || textPosition == OxGUIHelpers.Alignment.Bottom)
+            if (textPosition == OxHelpers.Alignment.Top || textPosition == OxHelpers.Alignment.Center || textPosition == OxHelpers.Alignment.Bottom)
             {
                 xPos += dimensions.leftSideWidth;
                 drawWidth = dimensions.centerWidth;
             }
-            else if (textPosition == OxGUIHelpers.Alignment.Top_Right || textPosition == OxGUIHelpers.Alignment.Right || textPosition == OxGUIHelpers.Alignment.Bottom_Right)
+            else if (textPosition == OxHelpers.Alignment.Top_Right || textPosition == OxHelpers.Alignment.Right || textPosition == OxHelpers.Alignment.Bottom_Right)
             {
                 xPos += dimensions.leftSideWidth + dimensions.centerWidth;
                 drawWidth = dimensions.rightSideWidth;
             }
-            if (textPosition == OxGUIHelpers.Alignment.Left || textPosition == OxGUIHelpers.Alignment.Center || textPosition == OxGUIHelpers.Alignment.Right)
+            if (textPosition == OxHelpers.Alignment.Left || textPosition == OxHelpers.Alignment.Center || textPosition == OxHelpers.Alignment.Right)
             {
                 yPos += dimensions.topSideHeight;
                 drawHeight = dimensions.centerHeight;
             }
-            else if (textPosition == OxGUIHelpers.Alignment.Bottom_Left || textPosition == OxGUIHelpers.Alignment.Bottom || textPosition == OxGUIHelpers.Alignment.Bottom_Right)
+            else if (textPosition == OxHelpers.Alignment.Bottom_Left || textPosition == OxHelpers.Alignment.Bottom || textPosition == OxHelpers.Alignment.Bottom_Right)
             {
                 yPos += dimensions.topSideHeight + dimensions.centerHeight;
                 drawHeight = dimensions.bottomSideHeight;
             }
             GUI.Label(new Rect(xPos, yPos, drawWidth, drawHeight), text, textStyle);
         }
-        private void UpdateNonPixeliness(int availableState)
+        internal void UpdateNonPixeliness(int availableState)
         {
             float calculatedSideWidth = origInfo[availableState].originalSideWidth, calculatedSideHeight = origInfo[availableState].originalSideHeight;
             float horizontalPercentDifference = width / origInfo[availableState].originalWidth, verticalPercentDifference = height / origInfo[availableState].originalHeight;
@@ -208,14 +205,14 @@ namespace OxGUI
             centerPercentWidth = (width - calculatedSideWidth) / width;
             centerPercentHeight = (height - calculatedSideHeight) / height;
         }
-        protected OxGUIHelpers.ElementState GetTexturableState()
+        protected OxHelpers.ElementState GetTexturableState()
         {
-            OxGUIHelpers.ElementState availableState = currentState;
-            if (appearances[((int)availableState), ((int)OxGUIHelpers.Alignment.Center)] == null)
+            OxHelpers.ElementState availableState = currentState;
+            if (appearances[((int)availableState), ((int)OxHelpers.Alignment.Center)] == null)
             {
-                if (appearances[((int)OxGUIHelpers.ElementState.Normal), ((int)OxGUIHelpers.Alignment.Center)] != null) availableState = OxGUIHelpers.ElementState.Normal;
-                if (appearances[((int)OxGUIHelpers.ElementState.Highlighted), ((int)OxGUIHelpers.Alignment.Center)] != null) availableState = OxGUIHelpers.ElementState.Highlighted;
-                if (appearances[((int)OxGUIHelpers.ElementState.Down), ((int)OxGUIHelpers.Alignment.Center)] != null) availableState = OxGUIHelpers.ElementState.Down;
+                if (appearances[((int)OxHelpers.ElementState.Normal), ((int)OxHelpers.Alignment.Center)] != null) availableState = OxHelpers.ElementState.Normal;
+                if (appearances[((int)OxHelpers.ElementState.Highlighted), ((int)OxHelpers.Alignment.Center)] != null) availableState = OxHelpers.ElementState.Highlighted;
+                if (appearances[((int)OxHelpers.ElementState.Down), ((int)OxHelpers.Alignment.Center)] != null) availableState = OxHelpers.ElementState.Down;
             }
             return availableState;
         }
@@ -272,7 +269,7 @@ namespace OxGUI
                         loadedTextures[j] = Resources.Load<Texture2D>(adjustedLocation + textureStateType + textureLocationTypes[j]);
                         if (loadedTextures[j] == null) { Debug.Log("Assets/Resources/" + adjustedLocation + textureStateType + textureLocationTypes[j] + " does not exist"); nulled = true; break; }
                     }
-                    if (!nulled) element.AddAppearance(((OxGUIHelpers.ElementState)i), loadedTextures);
+                    if (!nulled) element.AddAppearance(((OxHelpers.ElementState)i), loadedTextures);
                 }
             }
         }
@@ -283,16 +280,30 @@ namespace OxGUI
         private static OxBase currentlyHighlighted = null, currentlyPressed = null;
         private static Vector2 prevMousePosition = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
         private bool mouseIsOver, mouseIsDown;
-        private event OxGUIHelpers.MouseMovedHandler mouseMoved;
-        private event OxGUIHelpers.MouseOverHandler mouseOver;
-        private event OxGUIHelpers.MouseLeaveHandler mouseLeave;
-        private event OxGUIHelpers.MouseDownHandler mouseDown;
-        private event OxGUIHelpers.MouseUpHandler mouseUp;
+        private event OxHelpers.MouseMovedHandler mouseMoved;
+        private event OxHelpers.MouseOverHandler mouseOver;
+        private event OxHelpers.MouseLeaveHandler mouseLeave;
+        private event OxHelpers.MouseDownHandler mouseDown;
+        private event OxHelpers.MouseUpHandler mouseUp;
 
         private void InteractionSystem()
         {
             if (currentIndex == 1)
             {
+                //string activeElementsString = "";
+                //foreach(OxBase someElement in activeElements)
+                //{
+                //    if(!(someElement is OxButton)) activeElementsString += someElement.GetType().Name + ", ";
+                //}
+                //Debug.Log(activeElements.Count + ": " + activeElementsString);
+                for (int i = activeElements.Count - 1; i > 0; i--)
+                {
+                    if (activeElements[i] == null || activeElements[i].currentAlteration == alternator)
+                    {
+                        activeElements.RemoveAt(i);
+                    }
+                }
+
                 Vector2 mousePosition = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
                 for (int i = activeElements.Count - 1; i >= 0; i--)
                 {
@@ -320,6 +331,7 @@ namespace OxGUI
                         //else if (!element.mouseIsOver && currentlyHighlighted == element) currentlyHighlighted = null;
                         if (element.mouseIsDown) currentlyPressed = element;
                         else if (!element.mouseIsDown && currentlyPressed == element) currentlyPressed = null;
+                        if (activeElements.IndexOf(currentlyPressed) < 0) currentlyPressed = null;
 
                         if (Vector2.Distance(prevMousePosition, mousePosition) > 0)
                         {
@@ -330,7 +342,7 @@ namespace OxGUI
                             }
                         }
 
-                        if (element.isSelected) element.currentState = OxGUIHelpers.ElementState.Highlighted;
+                        if (element.isSelected) element.currentState = OxHelpers.ElementState.Highlighted;
                     }
                 }
                 currentlyHighlighted = null;
@@ -341,13 +353,13 @@ namespace OxGUI
         #endregion
 
         #region Extra Shared Attributes
-        public event OxGUIHelpers.MovedHandler moved;
-        public event OxGUIHelpers.DraggedHandler dragged;
-        public event OxGUIHelpers.ResizedHandler resized;
-        public event OxGUIHelpers.HighlightedHandler highlightedChanged;
-        public event OxGUIHelpers.PressedHandler pressed;
-        public event OxGUIHelpers.ReleasedHandler released;
-        public event OxGUIHelpers.SelectedHandler selected;
+        public event OxHelpers.MovedHandler moved;
+        public event OxHelpers.DraggedHandler dragged;
+        public event OxHelpers.ResizedHandler resized;
+        public event OxHelpers.HighlightedHandler highlightedChanged;
+        public event OxHelpers.PressedHandler pressed;
+        public event OxHelpers.ReleasedHandler released;
+        public event OxHelpers.SelectedHandler selected;
 
         public virtual void Reposition(int newX, int newY)
         {
@@ -378,19 +390,19 @@ namespace OxGUI
 
         public virtual void Highlight(bool onOff)
         {
-            if (onOff) currentState = OxGUIHelpers.ElementState.Highlighted;
-            else currentState = OxGUIHelpers.ElementState.Normal;
+            if (onOff) currentState = OxHelpers.ElementState.Highlighted;
+            else currentState = OxHelpers.ElementState.Normal;
             FireHighlightChangedEvent(onOff);
         }
         public virtual void Press()
         {
-            currentState = OxGUIHelpers.ElementState.Down;
+            currentState = OxHelpers.ElementState.Down;
             FirePressedEvent();
         }
         public virtual void Release()
         {
-            if(mouseIsOver) currentState = OxGUIHelpers.ElementState.Highlighted;
-            else currentState = OxGUIHelpers.ElementState.Normal;
+            if(mouseIsOver) currentState = OxHelpers.ElementState.Highlighted;
+            else currentState = OxHelpers.ElementState.Normal;
             FireReleasedEvent();
         }
         public virtual void Select(bool onOff)
@@ -398,13 +410,13 @@ namespace OxGUI
             if (isSelected != onOff)
             {
                 isSelected = onOff;
-                if (onOff) currentState = OxGUIHelpers.ElementState.Highlighted;
-                else currentState = OxGUIHelpers.ElementState.Normal;
+                if (onOff) currentState = OxHelpers.ElementState.Highlighted;
+                else currentState = OxHelpers.ElementState.Normal;
                 FireSelectedEvent(onOff);
             }
         }
 
-        public void AddAppearance(OxGUIHelpers.ElementState type, Texture2D[] appearance)
+        public void AddAppearance(OxHelpers.ElementState type, Texture2D[] appearance)
         {
             if (appearance.Length == 9)
             {
@@ -417,8 +429,8 @@ namespace OxGUI
                     appearances[((int)type), i] = safeTexture;
                 }
 
-                float centerWidth = appearance[(int)OxGUIHelpers.Alignment.Center].width, rightWidth = appearance[(int)OxGUIHelpers.Alignment.Right].width, leftWidth = appearance[(int)OxGUIHelpers.Alignment.Left].width;
-                float centerHeight = appearance[(int)OxGUIHelpers.Alignment.Center].height, topHeight = appearance[(int)OxGUIHelpers.Alignment.Top].height, bottomHeight = appearance[(int)OxGUIHelpers.Alignment.Bottom].height;
+                float centerWidth = appearance[(int)OxHelpers.Alignment.Center].width, rightWidth = appearance[(int)OxHelpers.Alignment.Right].width, leftWidth = appearance[(int)OxHelpers.Alignment.Left].width;
+                float centerHeight = appearance[(int)OxHelpers.Alignment.Center].height, topHeight = appearance[(int)OxHelpers.Alignment.Top].height, bottomHeight = appearance[(int)OxHelpers.Alignment.Bottom].height;
                 float percentWidth = centerWidth / (centerWidth + rightWidth + leftWidth);
                 float percentHeight = centerHeight / (centerHeight + topHeight + bottomHeight);
 
@@ -433,7 +445,7 @@ namespace OxGUI
                 origInfo[(int)type].percentTop = topHeight / origInfo[(int)type].originalSideHeight;
             }
         }
-        public void ClearAppearance(OxGUIHelpers.ElementState type)
+        public void ClearAppearance(OxHelpers.ElementState type)
         {
             for(int i = 0; i < 9; i++)
             {
@@ -449,9 +461,9 @@ namespace OxGUI
         }
         public void ClearAllAppearances()
         {
-            ClearAppearance(OxGUIHelpers.ElementState.Normal);
-            ClearAppearance(OxGUIHelpers.ElementState.Highlighted);
-            ClearAppearance(OxGUIHelpers.ElementState.Down);
+            ClearAppearance(OxHelpers.ElementState.Normal);
+            ClearAppearance(OxHelpers.ElementState.Highlighted);
+            ClearAppearance(OxHelpers.ElementState.Down);
         }
         #endregion
 
@@ -499,11 +511,11 @@ namespace OxGUI
         }
         protected void FireMouseDownEvent()
         {
-            if (mouseDown != null) mouseDown(this, OxGUIHelpers.MouseButton.Left_Button);
+            if (mouseDown != null) mouseDown(this, OxHelpers.MouseButton.Left_Button);
         }
         protected void FireMouseUpEvent()
         {
-            if (mouseUp != null) mouseUp(this, OxGUIHelpers.MouseButton.Left_Button);
+            if (mouseUp != null) mouseUp(this, OxHelpers.MouseButton.Left_Button);
         }
         #endregion
     }
@@ -527,7 +539,7 @@ namespace OxGUI
 
     internal struct AppearanceInfo
     {
-        public OxGUIHelpers.ElementState state;
+        public OxHelpers.ElementState state;
         public float centerWidth, centerHeight, rightSideWidth, leftSideWidth, topSideHeight, bottomSideHeight;
     }
 }

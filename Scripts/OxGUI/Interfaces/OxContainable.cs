@@ -16,12 +16,14 @@
         /// the items list are removed. If an item within the parameters does not exist in
         /// the items list, it does not change the outcome.</returns>
         bool RemoveItems(params OxBase[] removedItems);
+        void RemoveAt(int index);
         void ClearItems();
         /// <summary>
         /// Gets the items within the items list.
         /// </summary>
         /// <returns>A shallow copy of the items</returns>
         OxBase[] GetItems();
+        OxBase ItemAt(int index);
         /// <summary>
         /// Gives the index of the item within the items list
         /// </summary>

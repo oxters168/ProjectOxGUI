@@ -4,7 +4,7 @@ using System.IO;
 
 namespace OxGUI
 {
-    public class OxGUIHelpers
+    public class OxHelpers
     {
         [Flags]
         public enum Anchor { None = 0x0, Left = 0x1, Right = 0x2, Bottom = 0x4, Top = 0x8, }
@@ -25,11 +25,47 @@ namespace OxGUI
         public delegate void MouseUpHandler(object obj, MouseButton button);
         public delegate void MouseOverHandler(object obj);
         public delegate void MouseLeaveHandler(object obj);
+        public delegate void ScrollValueChanged(object obj, float delta);
+        public delegate void SelectionChanged(object obj, object item, bool selected);
+        public delegate void CheckboxSwitched(object obj, bool state);
+        public delegate void TextChanged(object obj, string prevText);
 
+        #region Screen Calculations
+        public static Vector2 InchesToPixel(Vector2 inches)
+        {
+            Vector2 pixels;
+            pixels = inches * Screen.dpi;
+            return pixels;
+        }
+        public static Vector2 PixelsToInches(Vector2 pixels)
+        {
+            Vector2 inches;
+            inches = pixels / Screen.dpi;
+            return inches;
+        }
+        /// <summary>
+        /// Takes a size in inches, then checks if the percent of screen
+        /// space taken is too large. If it's too large, then it returns
+        /// the max percent.
+        /// </summary>
+        /// <param name="inches">Size in inches</param>
+        /// <param name="maxPercentScreenSize">Maximum screen space allowed</param>
+        /// <returns></returns>
+        public static Vector2 CalculatePixelSize(Vector2 inches, Vector2 maxPercentScreenSize)
+        {
+            Vector2 pixels = InchesToPixel(inches);
+            Vector2 inchesPercent = new Vector2(pixels.x / Screen.width, pixels.y / Screen.height);
+            pixels = new Vector2(maxPercentScreenSize.x >= inchesPercent.x ? pixels.x : maxPercentScreenSize.x * Screen.width, maxPercentScreenSize.y >= inchesPercent.y ? pixels.y : maxPercentScreenSize.y * Screen.height);
+            return pixels;
+        }
+        #endregion
+
+        #region Math
         public static float TruncateTo(float original, int decimalPlaces)
         {
             return ((int)(original * Mathf.Pow(10, decimalPlaces))) / Mathf.Pow(10, decimalPlaces);
         }
+        #endregion
 
         #region Paths
         public static string PathConvention(string input)
