@@ -8,13 +8,19 @@ namespace OxGUI
         private OxButton checkbox, check;
         private OxLabel label;
         public event OxHelpers.CheckboxSwitched checkboxSwitched;
-        
-        public OxCheckbox(Vector2 position, Vector2 size) : base(position, size)
+
+        public OxCheckbox(bool checkboxChecked) : this(Vector2.zero, Vector2.zero, "", checkboxChecked) { }
+        public OxCheckbox(string text) : this(Vector2.zero, Vector2.zero, text, false) { }
+        public OxCheckbox(string text, bool checkboxChecked) : this(Vector2.zero, Vector2.zero, text, checkboxChecked) { }
+        public OxCheckbox(Vector2 position, Vector2 size) : this(position, size, "", false) { }
+        public OxCheckbox(Vector2 position, Vector2 size, string text, bool checkboxChecked) : base(position, size)
         {
+            this.text = text;
+            this.checkboxChecked = checkboxChecked;
             ApplyAppearanceFromResources(this, "Textures/OxGUI/Panel2", true, false, false);
             highlightedChanged += OxCheckbox_highlightedChanged;
             pressed += OxCheckbox_pressed;
-            released += OxCheckbox_released;
+            clicked += OxCheckbox_clicked;
             checkbox = new OxButton();
             check = new OxButton();
             ApplyAppearanceFromResources(checkbox, "Textures/OxGUI/Checkbox/");
@@ -32,7 +38,9 @@ namespace OxGUI
         internal override void TextPaint()
         {
             AppearanceInfo dimensions = CurrentAppearanceInfo();
-            label.text = text;
+            string shownText = text;
+            if (shownText.Length <= 0 && value != null) shownText = value.ToString();
+            label.text = shownText;
             bool horizontal = dimensions.centerWidth >= dimensions.centerHeight;
             float checkboxSize = dimensions.centerHeight;
             if (!horizontal) checkboxSize = dimensions.centerWidth;
@@ -98,7 +106,7 @@ namespace OxGUI
             }
         }
 
-        private void OxCheckbox_highlightedChanged(object obj, bool onOff)
+        private void OxCheckbox_highlightedChanged(OxBase obj, bool onOff)
         {
             if(onOff)
             {
@@ -109,11 +117,11 @@ namespace OxGUI
                 checkbox.currentState = OxHelpers.ElementState.Normal;
             }
         }
-        private void OxCheckbox_pressed(object obj)
+        private void OxCheckbox_pressed(OxBase obj)
         {
             checkbox.currentState = OxHelpers.ElementState.Down;
         }
-        private void OxCheckbox_released(object obj)
+        private void OxCheckbox_clicked(OxBase obj)
         {
             checkbox.currentState = OxHelpers.ElementState.Highlighted;
             checkboxChecked = !checkboxChecked;

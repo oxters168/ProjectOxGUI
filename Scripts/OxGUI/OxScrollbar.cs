@@ -23,7 +23,7 @@ namespace OxGUI
         public override void Draw()
         {
             base.Draw();
-            DrawScrub();
+            if (visible) DrawScrub();
         }
         private void DrawScrub()
         {
@@ -45,7 +45,7 @@ namespace OxGUI
             GUI.EndGroup();
         }
 
-        private void ScrubButton_dragged(object obj, Vector2 delta)
+        private void ScrubButton_dragged(OxBase obj, Vector2 delta)
         {
             AppearanceInfo dimensions = CurrentAppearanceInfo();
             float scrubPosition = scrubButton.x, scrubSize = scrubButton.width, barSize = dimensions.centerWidth, changeInProgress = delta.x;

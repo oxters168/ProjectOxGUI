@@ -65,7 +65,7 @@ namespace OxGUI
         private void AddBackButton()
         {
             OxButton backButton = new OxButton("..");
-            backButton.released += BackButton_pressed;
+            backButton.clicked += BackButton_clicked;
             AddItems(backButton);
         }
         private void AddDirectories()
@@ -76,14 +76,14 @@ namespace OxGUI
                 string shortenedDirectory = OxHelpers.GetLastPartInAbsolutePath(directory);
 
                 OxButton dirButton = new OxButton(shortenedDirectory + "/");
-                dirButton.released += DirectoryButton_pressed;
+                dirButton.clicked += DirectoryButton_clicked;
                 AddItems(dirButton);
             }
         }
         private void AddFiles()
         {
             string searchPattern = "";
-            for(int i = 0; i < extensions.Count - 1; i++)
+            for(int i = 0; i < extensions.Count; i++)
             {
                 searchPattern += "*." + extensions[i];
                 if(i < extensions.Count - 1)
@@ -98,7 +98,6 @@ namespace OxGUI
             {
                 string shortednedFile = OxHelpers.GetLastPartInAbsolutePath(file);
                 OxButton fileButton = new OxButton(shortednedFile);
-                //fileButton.released += FileButton_pressed;
                 AddItems(fileButton);
             }
         }
@@ -108,22 +107,58 @@ namespace OxGUI
             foreach (string drive in drives)
             {
                 OxButton driveButton = new OxButton(OxHelpers.PathConvention(drive));
-                driveButton.released += DirectoryButton_pressed;
+                driveButton.clicked += DirectoryButton_clicked;
                 AddItems(driveButton);
             }
         }
 
-        private void BackButton_pressed(object obj)
+        /// <summary>
+        /// This method lets you make an item in a directory
+        /// be selected.
+        /// </summary>
+        /// <param name="selection">The absolute path of the item with the extension if directorySelection is false</param>
+        public void SetSelection(string selection)
         {
-            currentDirectory = OxHelpers.ParentPath(currentDirectory);
-            scrollProgress = savedScroll[savedScroll.Count - 1];
-            savedScroll.RemoveAt(savedScroll.Count - 1);
-        }
-        private void DirectoryButton_pressed(object obj)
-        {
-            if (!directorySelection || ((OxBase)obj).isSelected)
+            if (selection != null && selection.Length > 0)
             {
-                string nextDirectory = currentDirectory + ((OxBase)obj).text;
+                string directory = selection.Replace("\\", "/");
+                string itemName = (directory.LastIndexOf("/") == directory.Length - 1) ? directory.Substring(0, directory.Length - 1) : directory;
+                itemName = (itemName.LastIndexOf("/") > -1) ? itemName.Substring(itemName.LastIndexOf("/") + 1) : itemName;
+                directory = (directory.LastIndexOf("/") == directory.Length - 1) ? directory.Substring(0, directory.Length - 1) : directory;
+                directory = (directory.LastIndexOf("/") > -1) ? directory.Substring(0, directory.LastIndexOf("/")) : "";
+                if (directorySelection) itemName += "/";
+
+                currentDirectory = directory;
+                PopulateList();
+                previousDirectory = currentDirectory;
+                firstTimeLoad = false;
+                foreach (OxBase item in items)
+                {
+                    if (item.text.Equals(itemName, System.StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        selectedItems.Add(item);
+                        if (enableItemSelection) item.Select(true);
+                        FireSelectionChangedEvent(item, true);
+                        break;
+                    }
+                }
+            }
+        }
+
+        private void BackButton_clicked(OxBase obj)
+        {
+            if (!dragging)
+            {
+                currentDirectory = OxHelpers.ParentPath(currentDirectory);
+                if (savedScroll.Count > 0) { scrollProgress = savedScroll[savedScroll.Count - 1]; savedScroll.RemoveAt(savedScroll.Count - 1); }
+                else scrollProgress = 0;
+            }
+        }
+        private void DirectoryButton_clicked(OxBase obj)
+        {
+            if (!dragging && (!directorySelection || obj.isSelected))
+            {
+                string nextDirectory = currentDirectory + obj.text;
                 if (OxHelpers.CanBrowseDirectory(nextDirectory)) currentDirectory = nextDirectory;
                 savedScroll.Add(scrollProgress);
                 scrollProgress = 0;

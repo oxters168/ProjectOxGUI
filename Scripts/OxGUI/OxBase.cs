@@ -11,15 +11,20 @@ namespace OxGUI
         public bool isSelected { get; internal set; }
         public OxHelpers.Anchor anchor;
         public OxHelpers.ElementType elementFunction;
+        public object value;
+        public bool blockClick;
+        public float dragDeadZone = Mathf.Max(Screen.width * 0.01f, Screen.height * 0.01f);
         #endregion
-        
+
         #region Text Variables
         public const int MAX_FONT_SIZE = 256, MIN_FONT_SIZE = 8;
         public string text = "";
         public Color textColor = Color.black;
         public OxHelpers.Alignment textPosition = OxHelpers.Alignment.Center;
         public OxHelpers.Alignment textAlignment = OxHelpers.Alignment.Center;
-        public int textSize = 12;
+        public static int allTextSize = OxHelpers.CalculateFontSize(OxHelpers.InchesToPixel(new Vector2(0, 0.2f)).y);
+        public static bool autoSizeAllText = false, manualSizeAllText = false;
+        public int textSize = OxHelpers.CalculateFontSize(OxHelpers.InchesToPixel(new Vector2(0, 0.2f)).y);
         public bool autoSizeText = false;
         #endregion
 
@@ -88,19 +93,18 @@ namespace OxGUI
         //private string prevNumElements = "";
         private void ManageActiveElements()
         {
-            if(activeElements.IndexOf(this) == 0)
+            if (activeElements.IndexOf(this) > currentIndex)
             {
                 alternator = !alternator;
-                currentIndex = 0;
             }
 
             if (enabled)
             {
                 if (activeElements.IndexOf(this) < 0)
                 {
-                    activeElements.Insert(currentIndex, this);
+                    activeElements.Insert(0, this);
                 }
-                currentIndex++;
+                currentIndex = activeElements.IndexOf(this);
                 currentAlteration = alternator;
             }
             else
@@ -111,22 +115,27 @@ namespace OxGUI
                 }
             }
 
-            for(int i = currentIndex - 1; i >= 0; i--)
-            {
-                if (activeElements[i] == null || activeElements[i].currentAlteration != alternator)
-                {
-                    activeElements.RemoveAt(i);
-                    currentIndex--;
-                }
-            }
+            //while (activeElements.Count > 0 && (activeElements[0] == null || activeElements[0].currentAlteration != alternator))
+            //{
+            //    activeElements.RemoveAt(0);
+            //}
+
+            //for(int i = currentIndex - 1; i >= 0; i--)
+            //{
+            //    if (activeElements[i] == null || activeElements[i].currentAlteration != alternator)
+            //    {
+            //        activeElements.RemoveAt(i);
+            //        currentIndex--;
+            //    }
+            //}
             //string currentNumElements = activeElements.Count + " Elements";
             //if(!currentNumElements.Equals(prevNumElements)) Debug.Log(currentNumElements);
             //prevNumElements = currentNumElements;
         }
         internal virtual void Paint()
         {
-                TexturePaint();
-                TextPaint();
+            TexturePaint();
+            TextPaint();
         }
         internal virtual void TexturePaint()
         {
@@ -156,9 +165,11 @@ namespace OxGUI
         {
             AppearanceInfo dimensions = CurrentAppearanceInfo();
             float xPos = x, yPos = y, drawWidth = dimensions.leftSideWidth, drawHeight = dimensions.topSideHeight;
-            
+
             GUIStyle textStyle = new GUIStyle();
-            if (autoSizeText) textStyle.fontSize = CalculateFontSize(dimensions.centerHeight);
+            if (manualSizeAllText) textStyle.fontSize = allTextSize;
+            else if (autoSizeAllText) textStyle.fontSize = OxHelpers.CalculateFontSize(OxHelpers.InchesToPixel(new Vector2(0, 0.2f)).y);
+            else if (autoSizeText) textStyle.fontSize = OxHelpers.CalculateFontSize(dimensions.centerHeight);
             else textStyle.fontSize = textSize;
             textStyle.normal.textColor = textColor;
             textStyle.alignment = ((TextAnchor)textAlignment);
@@ -184,7 +195,10 @@ namespace OxGUI
                 yPos += dimensions.topSideHeight + dimensions.centerHeight;
                 drawHeight = dimensions.bottomSideHeight;
             }
-            GUI.Label(new Rect(xPos, yPos, drawWidth, drawHeight), text, textStyle);
+
+            string shownText = text;
+            if (shownText.Length <= 0 && value != null) shownText = value.ToString();
+            GUI.Label(new Rect(xPos, yPos, drawWidth, drawHeight), shownText, textStyle);
         }
         internal void UpdateNonPixeliness(int availableState)
         {
@@ -228,24 +242,6 @@ namespace OxGUI
             appearanceInfo.bottomSideHeight = (height - appearanceInfo.centerHeight) * (1 - origInfo[((int)appearanceInfo.state)].percentTop);
             return appearanceInfo;
         }
-        public static int CalculateFontSize(float elementHeight)
-        {
-            string testString = "Q";
-            int calculatedSize = MIN_FONT_SIZE + 1;
-            GUIStyle emptyStyle = new GUIStyle();
-            emptyStyle.fontSize = calculatedSize;
-            float pixelHeight = emptyStyle.CalcSize(new GUIContent(testString)).y;
-            while (pixelHeight < elementHeight)
-            {
-                calculatedSize++;
-                emptyStyle.fontSize = calculatedSize;
-                pixelHeight = emptyStyle.CalcSize(new GUIContent(testString)).y;
-                if (calculatedSize > MAX_FONT_SIZE) { break; }
-            }
-            calculatedSize--;
-
-            return calculatedSize;
-        }
 
         #region Common Textures
         private static readonly string[] textureLocationTypes = new string[] { "TopLeft", "Top", "TopRight", "Left", "Center", "Right", "BottomLeft", "Bottom", "BottomRight" };
@@ -254,7 +250,7 @@ namespace OxGUI
             string adjustedLocation = location.Replace("\\", "/");
             if (adjustedLocation.LastIndexOf("/") < adjustedLocation.Length - 1) adjustedLocation += "/";
 
-            for(int i = 0; i < 3; i++)
+            for (int i = 0; i < 3; i++)
             {
                 if ((i == 0 && normal) || (i == 1 && over) || (i == 2 && down))
                 {
@@ -277,7 +273,8 @@ namespace OxGUI
 
         #region User Interactibality
         private static List<OxBase> activeElements = new List<OxBase>();
-        private static OxBase currentlyHighlighted = null, currentlyPressed = null;
+        public static OxBase currentlyHighlighted { get; private set; }
+        public static OxBase currentlyPressed { get; private set; }
         private static Vector2 prevMousePosition = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
         private bool mouseIsOver, mouseIsDown;
         private event OxHelpers.MouseMovedHandler mouseMoved;
@@ -286,26 +283,26 @@ namespace OxGUI
         private event OxHelpers.MouseDownHandler mouseDown;
         private event OxHelpers.MouseUpHandler mouseUp;
 
-        private void InteractionSystem()
+        private static void InteractionSystem()
         {
-            if (currentIndex == 1)
-            {
+            //if (currentIndex == 1)
+            //{
                 //string activeElementsString = "";
                 //foreach(OxBase someElement in activeElements)
                 //{
                 //    if(!(someElement is OxButton)) activeElementsString += someElement.GetType().Name + ", ";
                 //}
                 //Debug.Log(activeElements.Count + ": " + activeElementsString);
-                for (int i = activeElements.Count - 1; i > 0; i--)
+                for (int i = activeElements.Count - 1; i >= currentIndex; i--)
                 {
-                    if (activeElements[i] == null || activeElements[i].currentAlteration == alternator)
+                    if (activeElements[i] == null || activeElements[i].currentAlteration != alternator)
                     {
                         activeElements.RemoveAt(i);
                     }
                 }
 
                 Vector2 mousePosition = new Vector2(Input.mousePosition.x, Screen.height - Input.mousePosition.y);
-                for (int i = activeElements.Count - 1; i >= 0; i--)
+                for (int i = 0; i < activeElements.Count; i++)
                 {
                     OxBase element = activeElements[i];
                     if (element != null && element.enabled)
@@ -324,19 +321,22 @@ namespace OxGUI
                         }
                         else
                         {
-                            if (element.mouseIsDown) { element.FireMouseUpEvent(); element.mouseIsDown = false; element.Release(); }
+                            if (element.mouseIsDown) { element.FireMouseUpEvent(); element.mouseIsDown = false; if (element.mouseIsOver && !element.blockClick) element.Click(); element.Release(); }
                         }
 
-                        if (element.mouseIsOver) currentlyHighlighted = element;
+                        if (element.mouseIsOver && currentlyHighlighted == null) currentlyHighlighted = element;
                         //else if (!element.mouseIsOver && currentlyHighlighted == element) currentlyHighlighted = null;
-                        if (element.mouseIsDown) currentlyPressed = element;
-                        else if (!element.mouseIsDown && currentlyPressed == element) currentlyPressed = null;
-                        if (activeElements.IndexOf(currentlyPressed) < 0) currentlyPressed = null;
+                        if (element.mouseIsDown && currentlyPressed == null) currentlyPressed = element;
+                        if (currentlyPressed != null && (!currentlyPressed.mouseIsDown || activeElements.IndexOf(currentlyPressed) < 0)) currentlyPressed = null;
+                        //else if (!element.mouseIsDown && currentlyPressed == element) currentlyPressed = null;
+                        //if (activeElements.IndexOf(currentlyPressed) < 0) currentlyPressed = null;
+                        //if (currentlyPressed != null) Debug.Log("Pressed: " + currentlyPressed.text);
+                        //if (currentlyHighlighted != null) Debug.Log("Highlighted: " + currentlyHighlighted.text);
 
                         if (Vector2.Distance(prevMousePosition, mousePosition) > 0)
                         {
                             element.FireMouseMovedEvent(mousePosition - prevMousePosition);
-                            if (element.mouseIsDown)
+                            if (element == currentlyPressed)
                             {
                                 element.FireDraggedEvent(mousePosition - prevMousePosition);
                             }
@@ -348,7 +348,7 @@ namespace OxGUI
                 currentlyHighlighted = null;
                 //currentlyPressed = null;
                 prevMousePosition = mousePosition;
-            }
+            //}
         }
         #endregion
 
@@ -359,6 +359,7 @@ namespace OxGUI
         public event OxHelpers.HighlightedHandler highlightedChanged;
         public event OxHelpers.PressedHandler pressed;
         public event OxHelpers.ReleasedHandler released;
+        public event OxHelpers.ClickedHandler clicked;
         public event OxHelpers.SelectedHandler selected;
 
         public virtual void Reposition(int newX, int newY)
@@ -404,6 +405,12 @@ namespace OxGUI
             if(mouseIsOver) currentState = OxHelpers.ElementState.Highlighted;
             else currentState = OxHelpers.ElementState.Normal;
             FireReleasedEvent();
+        }
+        public virtual void Click()
+        {
+            if (mouseIsOver) currentState = OxHelpers.ElementState.Highlighted;
+            else currentState = OxHelpers.ElementState.Normal;
+            FireClickedEvent();
         }
         public virtual void Select(bool onOff)
         {
@@ -491,6 +498,10 @@ namespace OxGUI
         protected void FireReleasedEvent()
         {
             if (released != null) released(this);
+        }
+        protected void FireClickedEvent()
+        {
+            if (clicked != null) clicked(this);
         }
         protected void FireSelectedEvent(bool onOff)
         {

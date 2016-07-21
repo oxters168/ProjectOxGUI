@@ -14,7 +14,7 @@ namespace OxGUI
         public override void Draw()
         {
             base.Draw();
-            DrawContainerButtons();
+            if (visible) DrawContainerButtons();
         }
 
         #region Container Buttons
@@ -75,15 +75,15 @@ namespace OxGUI
         #endregion
 
         #region Events
-        private void ContainerButton_dragged(object obj, Vector2 delta)
+        private void ContainerButton_dragged(OxBase obj, Vector2 delta)
         {
             if (obj is OxBase)
             {
-                if (((OxBase)obj).elementFunction == OxHelpers.ElementType.Position_Changer)
+                if (obj.elementFunction == OxHelpers.ElementType.Position_Changer)
                 {
                     Reposition(position + delta);
                 }
-                else if (((OxBase)obj).elementFunction == OxHelpers.ElementType.Size_Changer)
+                else if (obj.elementFunction == OxHelpers.ElementType.Size_Changer)
                 {
                     if (obj == containerButtons[((int)OxHelpers.Alignment.Right)])
                     {
@@ -102,32 +102,37 @@ namespace OxGUI
                     {
                         Reposition(new Vector2(x, y + delta.y));
                         Resize(new Vector2(width + delta.x, height - delta.y));
-                        MoveContainedItems(new Vector2(0, delta.y));
+                        //MoveContainedItems(new Vector2(0, delta.y));
+                        DeepMove(this, new Vector2(0, delta.y));
                     }
                     if (obj == containerButtons[((int)OxHelpers.Alignment.Bottom_Left)])
                     {
                         Reposition(new Vector2(x + delta.x, y));
                         Resize(new Vector2(width - delta.x, height + delta.y));
-                        MoveContainedItems(new Vector2(delta.x, 0));
+                        //MoveContainedItems(new Vector2(delta.x, 0));
+                        DeepMove(this, new Vector2(delta.x, 0));
                     }
 
                     if (obj == containerButtons[((int)OxHelpers.Alignment.Left)])
                     {
                         Reposition(new Vector2(x + delta.x, y));
                         Resize(new Vector2(width - delta.x, height));
-                        MoveContainedItems(new Vector2(delta.x, 0));
+                        //MoveContainedItems(new Vector2(delta.x, 0));
+                        DeepMove(this, new Vector2(delta.x, 0));
                     }
                     if (obj == containerButtons[((int)OxHelpers.Alignment.Top)])
                     {
                         Reposition(new Vector2(x, y + delta.y));
                         Resize(new Vector2(width, height - delta.y));
-                        MoveContainedItems(new Vector2(0, delta.y));
+                        //MoveContainedItems(new Vector2(0, delta.y));
+                        DeepMove(this, new Vector2(0, delta.y));
                     }
                     if (obj == containerButtons[((int)OxHelpers.Alignment.Top_Left)])
                     {
                         Reposition(position + delta);
                         Resize(size - delta);
-                        MoveContainedItems(delta);
+                        //MoveContainedItems(delta);
+                        DeepMove(this, delta);
                     }
                 }
             }

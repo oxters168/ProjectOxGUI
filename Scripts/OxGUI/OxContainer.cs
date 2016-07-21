@@ -9,15 +9,19 @@ namespace OxGUI
         public int itemsCount { get { return items.Count; } private set { } }
         private bool itemSelection;
         private bool multiSelect;
-        public bool enableItemSelection { get { return itemSelection; } set { multiSelect = false; itemSelection = value; } }
+        private bool deselectionDisabled;
+        public bool enableItemSelection { get { return itemSelection; } set { if (!value) { multiSelect = false; deselectionDisabled = false; } itemSelection = value; } }
         public bool enableMultiSelect { get { return multiSelect; } set { if (itemSelection) multiSelect = value; } }
+        public bool disableDeselection { get { return deselectionDisabled; } set { if (itemSelection) deselectionDisabled = value; } }
+        public OxBase selectedItem { get { if (selectedItems.Count > 0) return selectedItems[0]; else return null; } }
+        public int selectedIndex { get { if (selectedItems.Count > 0) return items.IndexOf(selectedItems[0]); else return -1; } }
         protected List<OxBase> selectedItems = new List<OxBase>();
         public event OxHelpers.SelectionChanged selectionChanged;
 
         public OxContainer(int x, int y, int width, int height) : this(new Vector2(x, y), new Vector2(width, height)) { }
         public OxContainer(Vector2 position, Vector2 size) : base(position, size)
         {
-            ApplyAppearanceFromResources(this, "Textures/OxGUI/Element2", true, false, false);
+            ApplyAppearanceFromResources(this, "Textures/OxGUI/Panel2", true, false, false);
             resized += OxPanel_resized;
             moved += OxPanel_moved;
             UpdateNonPixeliness((int)GetTexturableState());
@@ -26,7 +30,7 @@ namespace OxGUI
         public override void Draw()
         {
             base.Draw();
-            DrawContainedItems();
+            if (visible) DrawContainedItems();
         }
 
         #region Contained Items
@@ -41,10 +45,6 @@ namespace OxGUI
                 item.Draw();
             }
             GUI.EndGroup();
-        }
-        public virtual OxBase[] GetSelectedItems()
-        {
-            return selectedItems.ToArray();
         }
         protected virtual void ResizeContainedItems(Vector2 delta)
         {
@@ -93,6 +93,20 @@ namespace OxGUI
                 item.position += changeInPosition;
             }
         }
+        protected static void DeepMove(OxContainer parent, Vector2 delta)
+        {
+            parent.MoveContainedItems(delta);
+            foreach(OxBase item in parent.items)
+            {
+                if(item is OxContainer)
+                {
+                    Vector2 configuredDelta = delta;
+                    if ((item.anchor & OxHelpers.Anchor.Left) != OxHelpers.Anchor.Left || (item.anchor & OxHelpers.Anchor.Right) != OxHelpers.Anchor.Right) configuredDelta = new Vector2(0, configuredDelta.y);
+                    if ((item.anchor & OxHelpers.Anchor.Top) != OxHelpers.Anchor.Top || (item.anchor & OxHelpers.Anchor.Bottom) != OxHelpers.Anchor.Bottom) configuredDelta = new Vector2(configuredDelta.x, 0);
+                    DeepMove((OxContainer)item, configuredDelta);
+                }
+            }
+        }
         #endregion
 
         #region Interface
@@ -109,7 +123,7 @@ namespace OxGUI
                     item.parentInfo = new ParentInfo(this, group);
                     item.absoluteX = item.x;
                     item.absoluteY = item.y;
-                    item.released += Item_released;
+                    item.clicked += Item_clicked;
                     items.Add(item);
                 }
             }
@@ -126,7 +140,7 @@ namespace OxGUI
                         item.x = item.absoluteX;
                         item.y = item.absoluteY;
                         item.parentInfo = null;
-                        item.released -= Item_released;
+                        item.clicked -= Item_clicked;
                         selectedItems.Remove(item);
                         bool removedCurrent = items.Remove(item);
                         if (!removedCurrent) allRemoved = false;
@@ -150,6 +164,10 @@ namespace OxGUI
         {
             return items.ToArray();
         }
+        public virtual OxBase[] GetSelectedItems()
+        {
+            return selectedItems.ToArray();
+        }
         public virtual OxBase ItemAt(int index)
         {
             if (index > -1 && index < items.Count) return items[index];
@@ -162,22 +180,27 @@ namespace OxGUI
         #endregion
 
         #region Events
-        private void OxPanel_resized(object obj, Vector2 delta)
+        private void OxPanel_resized(OxBase obj, Vector2 delta)
         {
             ResizeContainedItems(delta);
         }
-        private void OxPanel_moved(object obj, Vector2 delta)
+        private void OxPanel_moved(OxBase obj, Vector2 delta)
         {
             //MoveContainedItems(delta);
         }
-        private void Item_released(object obj)
+        protected virtual void Item_clicked(OxBase obj)
         {
-            if (obj != null)
+            SelectItem(obj);
+        }
+        #endregion
+
+        public void SelectItem(OxBase item)
+        {
+            if (item != null && items.IndexOf(item) > -1)
             {
-                OxBase item = ((OxBase)obj);
                 if (enableMultiSelect)
                 {
-                    if(item.isSelected)
+                    if (item.isSelected)
                     {
                         selectedItems.Remove(item);
                     }
@@ -200,7 +223,7 @@ namespace OxGUI
                         }
                     }
 
-                    if (selectedItems.IndexOf(item) > -1)
+                    if (selectedItems.IndexOf(item) > -1 && !deselectionDisabled)
                     {
                         selectedItems.Remove(item);
                         item.Select(false);
@@ -215,9 +238,8 @@ namespace OxGUI
                 }
             }
         }
-        #endregion
 
-        protected void FireSelectionChangedEvent(object item, bool selected)
+        protected void FireSelectionChangedEvent(OxBase item, bool selected)
         {
             if (selectionChanged != null) selectionChanged(this, item, selected);
         }

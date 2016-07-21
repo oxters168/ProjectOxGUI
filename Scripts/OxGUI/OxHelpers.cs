@@ -10,25 +10,46 @@ namespace OxGUI
         public enum Anchor { None = 0x0, Left = 0x1, Right = 0x2, Bottom = 0x4, Top = 0x8, }
         public enum MouseButton { Left_Button, Right_Button, Middle_Mouse_Button, Back_Button, Forward_Button, }
         public enum ElementState { Normal, Highlighted, Down, }
-        public enum Alignment { Top_Left, Top, Top_Right, Left, Center, Right, Bottom_Left, Bottom, Bottom_Right }
-        public enum ElementType { None, Position_Changer, Size_Changer, }
+        public enum Alignment { Top_Left, Top, Top_Right, Left, Center, Right, Bottom_Left, Bottom, Bottom_Right, }
+        public enum ElementType { None, Accept, Cancel, Back, Position_Changer, Size_Changer, }
 
-        public delegate void MovedHandler(object obj, Vector2 delta);
-        public delegate void ResizedHandler(object obj, Vector2 delta);
-        public delegate void PressedHandler(object obj);
-        public delegate void DraggedHandler(object obj, Vector2 delta);
-        public delegate void ReleasedHandler(object obj);
-        public delegate void HighlightedHandler(object obj, bool onOff);
-        public delegate void SelectedHandler(object obj, bool onOff);
-        public delegate void MouseMovedHandler(object obj, Vector2 delta);
-        public delegate void MouseDownHandler(object obj, MouseButton button);
-        public delegate void MouseUpHandler(object obj, MouseButton button);
-        public delegate void MouseOverHandler(object obj);
-        public delegate void MouseLeaveHandler(object obj);
-        public delegate void ScrollValueChanged(object obj, float delta);
-        public delegate void SelectionChanged(object obj, object item, bool selected);
-        public delegate void CheckboxSwitched(object obj, bool state);
-        public delegate void TextChanged(object obj, string prevText);
+        public delegate void MovedHandler(OxBase obj, Vector2 delta);
+        public delegate void ResizedHandler(OxBase obj, Vector2 delta);
+        public delegate void PressedHandler(OxBase obj);
+        public delegate void DraggedHandler(OxBase obj, Vector2 delta);
+        public delegate void ReleasedHandler(OxBase obj);
+        public delegate void ClickedHandler(OxBase obj);
+        public delegate void HighlightedHandler(OxBase obj, bool onOff);
+        public delegate void SelectedHandler(OxBase obj, bool onOff);
+        public delegate void MouseMovedHandler(OxBase obj, Vector2 delta);
+        public delegate void MouseDownHandler(OxBase obj, MouseButton button);
+        public delegate void MouseUpHandler(OxBase obj, MouseButton button);
+        public delegate void MouseOverHandler(OxBase obj);
+        public delegate void MouseLeaveHandler(OxBase obj);
+        public delegate void ScrollValueChanged(OxBase obj, float delta);
+        public delegate void SelectionChanged(OxBase obj, OxBase item, bool selected);
+        public delegate void CheckboxSwitched(OxBase obj, bool state);
+        public delegate void TextChanged(OxBase obj, string prevText);
+        public delegate void SelectionDone(OxBase obj, ElementType selectionType);
+
+        public static int CalculateFontSize(float elementHeight)
+        {
+            string testString = "Q";
+            int calculatedSize = OxBase.MIN_FONT_SIZE + 1;
+            GUIStyle emptyStyle = new GUIStyle();
+            emptyStyle.fontSize = calculatedSize;
+            float pixelHeight = emptyStyle.CalcSize(new GUIContent(testString)).y;
+            while (pixelHeight < elementHeight)
+            {
+                calculatedSize++;
+                emptyStyle.fontSize = calculatedSize;
+                pixelHeight = emptyStyle.CalcSize(new GUIContent(testString)).y;
+                if (calculatedSize > OxBase.MAX_FONT_SIZE) { break; }
+            }
+            calculatedSize--;
+
+            return calculatedSize;
+        }
 
         #region Screen Calculations
         public static Vector2 InchesToPixel(Vector2 inches)

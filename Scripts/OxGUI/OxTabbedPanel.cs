@@ -7,7 +7,7 @@ namespace OxGUI
         private OxMenu tabs;
         public bool verticalTabs, switchTabsSide, switchTabsScrollbarSide;
         public float tabPercentSize = 0.2f;
-        public int selectedIndex { get; protected set; }
+        public new int selectedIndex { get; protected set; }
 
         public OxTabbedPanel() : this(Vector2.zero, Vector2.zero) { }
         public OxTabbedPanel(Vector2 position, Vector2 size) : base(position, size)
@@ -15,8 +15,12 @@ namespace OxGUI
             selectedIndex = -1;
             tabs = new OxMenu();
             tabs.parentInfo = new ParentInfo(this);
+            tabs.hideScrollbar = true;
+            tabs.fitItemsWhenLess = true;
             tabs.enableItemSelection = true;
+            tabs.disableDeselection = true;
             tabs.horizontal = !verticalTabs;
+            tabs.ClearAllAppearances();
             ClearAllAppearances();
         }
 
@@ -28,13 +32,20 @@ namespace OxGUI
         public OxPanel AddTab(string name)
         {
             OxButton tabButton = new OxButton(name);
-            tabButton.released += TabButton_released;
+            tabButton.clicked += TabButton_clicked;
+            tabButton.ClearAllAppearances();
+            ApplyAppearanceFromResources(tabButton, "Textures/OxGUI/Element3");
             tabs.AddItems(tabButton);
 
             Rect tabPanelDimensions = CalculateTabPanelDimensions();
             OxPanel tabPanel = new OxPanel(new Vector2(tabPanelDimensions.x, tabPanelDimensions.y), new Vector2(tabPanelDimensions.width, tabPanelDimensions.height));
             tabPanel.parentInfo = new ParentInfo(this);
+            tabPanel.anchor = (OxHelpers.Anchor.Top | OxHelpers.Anchor.Bottom | OxHelpers.Anchor.Left | OxHelpers.Anchor.Right);
+            tabPanel.ClearAllAppearances();
+            ApplyAppearanceFromResources(tabPanel, "Textures/OxGUI/Element4", true, false, false);
             items.Add(tabPanel);
+
+            if (selectedIndex < 0) { selectedIndex = tabs.IndexOf(tabButton); tabs.SelectItem(tabButton); }
             return tabPanel;
         }
         public bool RemoveTab(OxPanel tabPanel)
@@ -46,6 +57,7 @@ namespace OxGUI
                 return items.Remove(tabPanel);
             }
 
+            if (tabs.itemsCount <= 0) selectedIndex = -1;
             return false;
         }
         public void SetTabName(OxPanel tabPanel, string name)
@@ -58,13 +70,16 @@ namespace OxGUI
         }
         #endregion
 
-        private void TabButton_released(object obj)
+        private void TabButton_clicked(OxBase obj)
         {
-            OxBase tab = ((OxBase)obj);
-            if (!tab.isSelected)
-                selectedIndex = tabs.IndexOf(tab);
-            else
-                selectedIndex = -1;
+            //if (!tabs.dragging)
+            //{
+                OxBase tab = obj;
+                if (!tab.isSelected)
+                    selectedIndex = tabs.IndexOf(tab);
+                //else
+                //    selectedIndex = -1;
+            //}
         }
 
         protected override void DrawContainedItems()
@@ -172,7 +187,7 @@ namespace OxGUI
         {
             if(index > -1 && index < items.Count)
             {
-                tabs.ItemAt(index).released -= TabButton_released;
+                tabs.ItemAt(index).clicked -= TabButton_clicked;
                 tabs.RemoveAt(index);
                 items[index].parentInfo = null;
                 items.RemoveAt(index);

@@ -11,7 +11,7 @@ namespace OxGUI
         public OxButton(Vector2 position, Vector2 size, string text) : base(position, size)
         {
             this.text = text;
-            ApplyAppearanceFromResources(this, "Textures/OxGUI/Element1");
+            ApplyAppearanceFromResources(this, "Textures/OxGUI/Element5");
         }
     }
 }

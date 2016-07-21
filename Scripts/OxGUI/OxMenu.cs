@@ -7,13 +7,13 @@ namespace OxGUI
         public float cushion = 5;
         private OxScrollbar scrollbar;
         public int itemsShown = 5;
-        public bool horizontal = false, switchScrollbarSide = false;
+        public bool horizontal = false, fitItemsWhenLess = false, hideScrollbar = false, switchScrollbarSide = false;
         public float scrollbarPercentSpaceTaken = 0.2f;
         public float scrollProgress { get { return scrollbar.progress; } set { if (value >= 0 && value <= 1) scrollbar.progress = value; } }
 
-        private float amountDragged, drift = 3;
-        public bool isBeingDragged { get; private set; }
-        private bool dragging;
+        private float preDrag = 0, amountDragged, drift = 0.05f;
+        //public bool isBeingDragged { get; private set; }
+        public bool dragging { get; private set; }
 
         public OxMenu() : this(Vector2.zero, Vector2.zero) { }
         public OxMenu(Vector2 position, Vector2 size) : base(position, size)
@@ -30,13 +30,11 @@ namespace OxGUI
             AppearanceInfo dimensions = CurrentAppearanceInfo();
             Rect group = new Rect(x + dimensions.leftSideWidth, y + dimensions.topSideHeight, dimensions.centerWidth, dimensions.centerHeight);
             GUI.BeginGroup(group);
-            float xPos = 0, yPos = 0, drawWidth = dimensions.centerWidth, drawHeight = dimensions.centerHeight;
-            float scrollPixelProgress = 0;
+            float xPos = 0, yPos = 0, menuItemWidth = dimensions.centerWidth, menuItemHeight = dimensions.centerHeight;
 
             #region Add Scrollbar
-            if(items.Count > itemsShown)
+            if(itemsCount > itemsShown && !hideScrollbar)
             {
-                scrollPixelProgress = (items.Count - itemsShown) * scrollbar.progress;
                 #region Scrollbar
                 float scrollbarXPos = 0, scrollbarYPos = 0, scrollbarWidth = dimensions.centerWidth * scrollbarPercentSpaceTaken, scrollbarHeight = dimensions.centerHeight;
                 scrollbar.horizontal = horizontal;
@@ -65,7 +63,7 @@ namespace OxGUI
                     {
                         yPos += scrollbarHeight;
                     }
-                    drawHeight -= scrollbarHeight;
+                    menuItemHeight -= scrollbarHeight;
                     
                 }
                 else
@@ -74,25 +72,35 @@ namespace OxGUI
                     {
                         xPos += scrollbarWidth;
                     }
-                    drawWidth -= scrollbarWidth;
+                    menuItemWidth -= scrollbarWidth;
                     
                 }
                 #endregion
             }
             #endregion
 
+            int actualItemsShown = itemsShown;
+            if (itemsCount < itemsShown && fitItemsWhenLess) actualItemsShown = itemsCount;
+
             if(horizontal)
             {
-                drawWidth = ((drawWidth - (cushion * (itemsShown - 1))) / itemsShown);
+                menuItemWidth = ((menuItemWidth - (cushion * (actualItemsShown - 1))) / actualItemsShown);
             }
             else
             {
-                drawHeight = ((drawHeight - (cushion * (itemsShown - 1))) / itemsShown);
+                menuItemHeight = ((menuItemHeight - (cushion * (actualItemsShown - 1))) / actualItemsShown);
             }
 
+            //float menuItemMainSize = menuItemHeight;
+            //if (horizontal) menuItemMainSize = menuItemWidth;
+            //float fullListSize = (menuItemMainSize * (itemsCount - itemsShown)) + (cushion * ((itemsCount - itemsShown) - 1));
+
+            float scrollPixelProgress = (items.Count - actualItemsShown) * scrollbar.progress;
+            //float scrollPixelProgress = fullListSize * scrollbar.progress;
+            
             int index = Mathf.RoundToInt(scrollPixelProgress);
             int firstIndex = index;
-            for (int i = 0; i < itemsShown; i++)
+            for (int i = 0; i < actualItemsShown; i++)
             {
                 if (i + index < items.Count)
                 {
@@ -101,44 +109,44 @@ namespace OxGUI
                     float specificIndex = scrollPixelProgress - (firstIndex + i);
                     if (horizontal)
                     {
-                        items[i + index].x = Mathf.RoundToInt(xPos - (drawWidth * specificIndex) - (cushion * specificIndex));
+                        items[i + index].x = Mathf.RoundToInt(xPos - (menuItemWidth * specificIndex) - (cushion * specificIndex));
                         items[i + index].y = Mathf.RoundToInt(yPos);
                     }
                     else
                     {
                         items[i + index].x = Mathf.RoundToInt(xPos);
-                        items[i + index].y = Mathf.RoundToInt(yPos - (drawHeight * specificIndex) - (cushion * specificIndex));
+                        items[i + index].y = Mathf.RoundToInt(yPos - (menuItemHeight * specificIndex) - (cushion * specificIndex));
                     }
-                    items[i + index].width = Mathf.RoundToInt(drawWidth);
-                    items[i + index].height = Mathf.RoundToInt(drawHeight);
+                    items[i + index].width = Mathf.RoundToInt(menuItemWidth);
+                    items[i + index].height = Mathf.RoundToInt(menuItemHeight);
                     items[i + index].Draw();
                 }
             }
             GUI.EndGroup();
 
-            if (amountDragged > 0)
+            if (amountDragged != 0)
             {
-                float itemSize = drawHeight;
-                if (horizontal) itemSize = drawWidth;
-                float fullListSize = (itemSize * itemsCount) + (cushion * (itemsCount - 1));
-                scrollProgress += (amountDragged / fullListSize);
+                float menuItemMainSize = menuItemHeight;
+                if (horizontal) menuItemMainSize = menuItemWidth;
+                float fullListSize = (menuItemMainSize * (itemsCount - itemsShown)) + (cushion * ((itemsCount - itemsShown) - 1));
 
-                if(dragging)
+                float scrollAddition = (amountDragged / fullListSize);
+                //float scrollAddition = (amountDragged * ((menuItemMainSize * (itemsCount - itemsShown)) / fullListSize));
+                //float scrollAddition = amountDragged / (menuItemMainSize * (itemsCount - itemsShown));
+
+                if ((scrollAddition > 0 && (scrollProgress + scrollAddition) < 1) || (scrollAddition < 0 && (scrollProgress + scrollAddition) > 0)) scrollProgress += scrollAddition;
+                else if (scrollAddition > 0) { scrollProgress = 1; amountDragged = 0; }
+                else if (scrollAddition < 0) { scrollProgress = 0; amountDragged = 0; }
+
+                if(amountDragged > 0)
                 {
-                    amountDragged = 0;
+                    if (amountDragged - drift > 0) amountDragged -= drift;
+                    else amountDragged = 0;
                 }
                 else
                 {
-                    if(amountDragged > 0)
-                    {
-                        if (amountDragged - drift > 0) amountDragged -= drift;
-                        else amountDragged = 0;
-                    }
-                    else
-                    {
-                        if (amountDragged + drift < 0) amountDragged += drift;
-                        else amountDragged = 0;
-                    }
+                    if (amountDragged + drift < 0) amountDragged += drift;
+                    else amountDragged = 0;
                 }
             }
         }
@@ -153,25 +161,44 @@ namespace OxGUI
             }
         }
 
-        private void Item_released(object obj)
+        private void Item_released(OxBase obj)
         {
+            preDrag = 0;
             dragging = false;
+            SetItemsClickBlock(false);
         }
 
-        private void Item_dragged(object obj, Vector2 delta)
+        protected override void Item_clicked(OxBase obj)
         {
-            dragging = true;
-            isBeingDragged = true;
-            AppearanceInfo dimensions = CurrentAppearanceInfo();
-            amountDragged += -delta.y;
-            float itemSize = (dimensions.centerHeight - (cushion * (itemsShown - 1))) / itemsShown;
-            if (horizontal)
+            if(!dragging) base.Item_clicked(obj);
+        }
+
+        private void Item_dragged(OxBase obj, Vector2 delta)
+        {
+            if (horizontal) preDrag += -delta.x;
+            else preDrag += -delta.y;
+
+            if (items.Count > itemsShown && (Mathf.Abs(preDrag) > dragDeadZone || dragging))
             {
-                amountDragged += -delta.x;
-                itemSize = (dimensions.centerWidth - (cushion * (itemsShown - 1))) / itemsShown;
+                dragging = true;
+                SetItemsClickBlock(true);
+                //AppearanceInfo dimensions = CurrentAppearanceInfo();
+                amountDragged = -delta.y;
+                //float itemSize = (dimensions.centerHeight - (cushion * (itemsShown - 1))) / itemsShown;
+                if (horizontal)
+                {
+                    amountDragged += -delta.x;
+                    //itemSize = (dimensions.centerWidth - (cushion * (itemsShown - 1))) / itemsShown;
+                }
             }
-            
-            
+        }
+
+        private void SetItemsClickBlock(bool block)
+        {
+            foreach(OxBase item in items)
+            {
+                item.blockClick = block;
+            }
         }
     }
 }

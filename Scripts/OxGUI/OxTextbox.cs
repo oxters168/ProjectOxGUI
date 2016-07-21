@@ -27,7 +27,9 @@ namespace OxGUI
             AppearanceInfo dimensions = CurrentAppearanceInfo();
             GUIStyle textStyle = new GUIStyle();
             textStyle.font = font;
-            if (autoSizeText) textStyle.fontSize = CalculateFontSize(dimensions.centerHeight);
+            if (manualSizeAllText) textStyle.fontSize = allTextSize;
+            else if (autoSizeAllText) textStyle.fontSize = OxHelpers.CalculateFontSize(OxHelpers.InchesToPixel(new Vector2(0, 0.2f)).y);
+            else if (autoSizeText) textStyle.fontSize = OxHelpers.CalculateFontSize(dimensions.centerHeight);
             else textStyle.fontSize = textSize;
             textStyle.normal.textColor = textColor;
             textStyle.wordWrap = wordWrap;
@@ -37,6 +39,8 @@ namespace OxGUI
             textStyle.fontStyle = fontStyle;
             textStyle.richText = richText;
 
+            //string shownText = text;
+            if (text.Length <= 0 && value != null) text = value.ToString();
             string prevText = text;
             if (multiline) text = GUI.TextArea(new Rect(x + dimensions.leftSideWidth, y + dimensions.topSideHeight, dimensions.centerWidth, dimensions.centerHeight), text, textStyle);
             else text = GUI.TextField(new Rect(x + dimensions.leftSideWidth, y + dimensions.topSideHeight, dimensions.centerWidth, dimensions.centerHeight), text, textStyle);

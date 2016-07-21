@@ -11,6 +11,7 @@ public class ExampleOxGUI : MonoBehaviour
     OxButton button;
     OxCheckbox checkbox;
     OxScrollbar scrollbar;
+    OxListFileSelectorPrompt fsp;
     public bool tp_top, tp_bottom, tp_left, tp_right;
     public bool textbox_top, textbox_bottom, textbox_left, textbox_right;
     public bool menu_top, menu_bottom, menu_left, menu_right;
@@ -18,31 +19,33 @@ public class ExampleOxGUI : MonoBehaviour
     public bool button_top, button_bottom, button_left, button_right;
     public bool checkbox_top, checkbox_bottom, checkbox_left, checkbox_right;
     public bool scrollbar_top, scrollbar_bottom, scrollbar_left, scrollbar_right;
+    public bool fsp_top, fsp_bottom, fsp_left, fsp_right;
 
     void Start()
     {
         InitializeWindow();
         InitializeTabbedPanel();
+
         InitializeMenu();
         InitializeTextbox();
-        
         InitializeFS();
         InitializeButton();
         InitializeCheckbox();
         InitializeScrollbar();
+        InitializeFSP();
     }
 
     void OnGUI ()
     {
         SetTabbedPanelAnchor();
         SetMenuAnchor();
-        SetFSAnchor();
         SetTextboxAnchor();
+        SetFSAnchor();
         SetButtonAnchor();
         SetCheckboxAnchor();
         SetScrollbarAnchor();
+        SetFSPAnchor();
         window.Draw();
-        //tabbedPanel.Draw();
     }
 
     private void InitializeTabbedPanel()
@@ -186,6 +189,25 @@ public class ExampleOxGUI : MonoBehaviour
         else scrollbar.anchor &= ~OxHelpers.Anchor.Left;
         if (scrollbar_right) scrollbar.anchor |= OxHelpers.Anchor.Right;
         else scrollbar.anchor &= ~OxHelpers.Anchor.Right;
+    }
+
+    private void InitializeFSP()
+    {
+        int fspWidth = 75, fspHeight = 250, fspX = (Screen.width / 2) - (fspWidth / 2), fspY = (Screen.height / 2) - (fspHeight / 2);
+        fsp = new OxListFileSelectorPrompt(new Vector2(fspX, fspY), new Vector2(fspWidth, fspHeight));
+        OxPanel quickPanel = tabbedPanel.AddTab("FileSelectorPrompt");
+        quickPanel.AddItems(fsp);
+    }
+    private void SetFSPAnchor()
+    {
+        if (fsp_top) fsp.anchor |= OxHelpers.Anchor.Top;
+        else fsp.anchor &= ~OxHelpers.Anchor.Top;
+        if (fsp_bottom) fsp.anchor |= OxHelpers.Anchor.Bottom;
+        else fsp.anchor &= ~OxHelpers.Anchor.Bottom;
+        if (fsp_left) fsp.anchor |= OxHelpers.Anchor.Left;
+        else fsp.anchor &= ~OxHelpers.Anchor.Left;
+        if (fsp_right) fsp.anchor |= OxHelpers.Anchor.Right;
+        else fsp.anchor &= ~OxHelpers.Anchor.Right;
     }
 
     private void InitializeWindow()
